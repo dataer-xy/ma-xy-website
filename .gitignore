@@ -4,6 +4,7 @@ images
 new
 __pycache__
 # 过滤掉私有的
+next
 artwork
 texsrc/pdf
 texsrc/src/images

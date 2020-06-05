@@ -1,5 +1,5 @@
 # 模型与算法(网站)
-网站主页：[http://www.ma-xy.com]
+[网站主页](http://www.ma-xy.com)
 
 ## 构建
 * cnpm install -D vuepress

@@ -1,8 +1,16 @@
 """将tex转化为pdf
 
 
-目录要编译两遍?
+目录要编译两遍? 嗯
+参考文献也要编译？嗯
+https://blog.csdn.net/weixin_38907330/article/details/104565219
+https://blog.csdn.net/yzy_1996/article/details/89452063
 
+全页打开 （_blank）
+<a class="open-full" href="/texpdf/part-sxjm-chap-xipoxitong.pdf" target="_blank"> 
+    全页打开
+</a>
+bibtex 只能当前文件夹
 """
 
 import subprocess
@@ -13,7 +21,7 @@ texFilePath = os.path.join(basePath,"docs",".vuepress","public","texpdf") # tex 
 
 def build_tex_str(documentStr,bibFileName=""):
     """
-    TODO:
+    NOTE:
         添加bibliography
     """
 
@@ -59,7 +67,7 @@ def build_tex_str(documentStr,bibFileName=""):
     \renewcommand{\algorithmicrequire}{\textbf{输入:}}
     \renewcommand{\algorithmicensure}{\textbf{输出:}}
 
-%%  罗马数字：示例：\rom{2}
+%% 罗马数字：示例：\rom{2}
 \makeatletter
 \newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral \%(str1)s 
 \makeatother
@@ -145,7 +153,15 @@ def build_tex_str(documentStr,bibFileName=""):
 
 %% 页眉页脚设置
 \usepackage{fancyhdr}
-\pagestyle{headings}
+%%\pagestyle{headings}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}                                          
+\fancyfoot[L]{\url{http://www.ma-xy.com}}
+\fancyfoot[R]{\url{http://www.ma-xy.com}}
+\renewcommand{\footrulewidth}{0pt}                                    
+
 
 %% 章节格式设置
 \CTEXsetup[format={\zihao{-3}\raggedright\bfseries}]{section}
@@ -153,7 +169,8 @@ def build_tex_str(documentStr,bibFileName=""):
 
 %% 水印
 \usepackage{draftwatermark}
-\SetWatermarkScale{1}
+\SetWatermarkText{http://www.ma-xy.com}
+\SetWatermarkScale{0.5}
 
 \begin{document}
 \tableofcontents
@@ -207,14 +224,14 @@ def remove_temp_files(dirOutput, name):
     except:
         pass
     
-    # try:
-    #     delete_file(os.path.join(dirOutput,"{}.pdf".format(name)))
-    # except:
-    #     pass
-    # try:
-    #     delete_file(os.path.join(dirOutput,"{}.tex".format(name)))
-    # except:
-    #     pass
+    try:
+        delete_file(os.path.join(dirOutput,"{}.bbl".format(name)))
+    except:
+        pass
+    try:
+        delete_file(os.path.join(dirOutput,"{}.blg".format(name)))
+    except:
+        pass
 
 
 # OK 生成pdf
@@ -226,14 +243,41 @@ def build_tex_pdf(dirOutput,fullPathTex,DEVNULL):
 
     pwd = os.getcwd()
 
-    os.chdir(texFilePath)   #修改当前工作目录
+    os.chdir(texFilePath) # 修改当前工作目录
+
+    fileNameHasExt = os.path.split(fullPathTex)[1]
+    fileNameNoExt = os.path.splitext(fileNameHasExt)[0]
+
+    auxFileNoExt = os.path.splitext(fullPathTex)[0]
+    bibFile = auxFileNoExt + ".bib"
 
     try:
         cmd = "xelatex -interaction=nonstopmode -output-directory={} {}".format(
             dirOutput, 
             fullPathTex
         )
+        if os.path.exists(bibFile):
+            # 编译出 aux
+            code = subprocess.run(
+                cmd, 
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
+            # 编译参考文献 BibTex
+            # 如果有对应的的bib文件，则尝试编译，没有bib则跳过
+            
+            cmd2 = "bibtex {fileNameNoExt}".format(
+                fileNameNoExt=fileNameNoExt
+            )
+            code = subprocess.run(
+                cmd2, 
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                shell=True
+            )
 
+        # 编译目录等
         code = subprocess.run(
             cmd, 
             stdout=subprocess.PIPE,
@@ -246,7 +290,23 @@ def build_tex_pdf(dirOutput,fullPathTex,DEVNULL):
             stderr=subprocess.PIPE,
             shell=True
         )
+
+        
     except:
+        if os.path.exists(bibFile):
+            # 编译出 aux
+            code = subprocess.call(
+                ["xelatex", '-interaction=nonstopmode', fullPathTex],
+                stdout=DEVNULL, 
+                stderr=DEVNULL
+            )
+            # 编译参考文献 BibTex
+            # 如果有对应的的bib文件，则尝试编译，没有bib则跳过
+            code = subprocess.call(
+                ["bibtex", fileNameNoExt],
+                stdout=DEVNULL, 
+                stderr=DEVNULL
+            )
         code = subprocess.call(
             ["xelatex", '-interaction=nonstopmode', fullPathTex],
             stdout=DEVNULL, 
@@ -360,6 +420,7 @@ for fileNamei in texFileList:
 
         mkTemplate = r"""
 {mkLevel} {chapName}
+[全页打开]({pdfFile}) (_self形式)
 <div class="pdf-class">
     <iframe  src={pdfFile} width="1100" height="1100">
     </iframe>
@@ -369,7 +430,7 @@ for fileNamei in texFileList:
         mkStr = mkTemplate.format(
             mkLevel=mkLevel,
             chapName=chapName,
-            pdfFile = os.path.join(r"\texpdf","{pdfFileName}.pdf".format(pdfFileName=name))
+            pdfFile = os.path.join(r"\texpdf","{pdfFileName}.pdf".format(pdfFileName=name)).replace("\\","/")
         )
 
         ## 写 mk 到 文件夹下，哪个 part ?

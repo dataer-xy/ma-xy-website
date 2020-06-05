@@ -1,3 +1,7 @@
+"""
+写入导航栏目录（js 文件） nav
+
+"""
 import os
 
 basePath = r"D:\GODEYES\INCUBATORS\ma-xy-website"
@@ -157,4 +161,3 @@ module.exports = %s ;
 
         """ % (partName)
         )
-
