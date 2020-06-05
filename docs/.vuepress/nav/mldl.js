@@ -7,8 +7,8 @@ let mldl = [
 'part-mldl-chap-RVM',
 'part-mldl-chap-ANN',
 'part-mldl-chap-DeepLearn',
-'part-mldl-chap-boost',
-'part-mldl-chap-mcmc',
+// 'part-mldl-chap-boost',
+// 'part-mldl-chap-mcmc',
 ]
 
 module.exports = mldl ;
