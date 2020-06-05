@@ -1,0 +1,196 @@
+% % \part{优化模型}
+% % \chapter{最小最大规划}
+
+\chapter{最小最大规划}
+
+\section{问题的引入与分析}
+    \par
+    重新考虑前面的线性回归，在最小二乘回归中，我们要求预测与实际的离差平方和最小，即
+    \begin{align*}
+        &\mathop{\min}\limits_{w}\ \|y-w^\mathrm{T} x\|_2^2=\mathop{\sum}\limits_{i=1}^n(y_i-w^\mathrm{T} x_i)^2\\
+        &s.t.\quad {\sum}w=1
+    \end{align*}
+    当然，我们可以将$n$个残差$e_i=y_i-w^\mathrm{T} x_i$进行加权处理，设$n$个权重为${\eta}_i$，有
+    \begin{align*}
+        &\mathop{\min}\limits_{w}\  \mathop{\sum}\limits_{i=1}^n{\eta}_i(y_i-w^\mathrm{T} x_i)^2\\
+        &s.t.\quad {\sum}w=1
+    \end{align*}
+    上面的加权模型称为加权最小二乘回归。下面，我们要求残差中最大的那一个最小，有
+    \begin{align*}
+        &\mathop{\min}\limits_{w}\  \mathop{\max}\limits_{i}\ (y_i-w^\mathrm{T} x_i)
+    \end{align*}
+    \par
+    上述规划问题是一个最小最大规划。求解上面这个Chekyshev approximation problem等价于求解下面的线性规划
+    \begin{align*}
+        \mathop{\min}\  &t\\
+        s.t.\quad & w^\mathrm{T} x_i-t\leqslant y_i\\
+        & -w^\mathrm{T} x_i-t\leqslant -y_i\\
+        &i=1,2,\ldots,n
+    \end{align*}
+    其中：$w\in R^n,t\in R$。
+    \par
+    对于最大最小规划(最小最大规划)，我们再考虑一个示例
+        \begin{align}
+        \label{引例2}
+        &\mathop {\min} \ \mathop {\max}\
+        \left\{
+        \begin{aligned}
+        & x_1\sin(x_2)\\
+        & 1-x_1x_2\\
+        \end{aligned}
+        \right.\\
+        &s.t.\quad 0 \leqslant x \leqslant 1 \notag
+        \end{align}
+        注：此外，SVM也是从离超平面的最小间隔最大化推出来的。
+\section{模型规范化及基础理论}
+    \par
+    上述引例中的规划问题称为极小极大规划(最小最大规划)，是一种常见的不可微优化问题，其一般形式为
+    \begin{align}
+    \label{最小最大规划的一般形式1}
+    &\mathop{\min}\limits_{y}\ \mathop{\max}\limits_{i}\ f_i(y)\\
+    &s.t.\quad \left\{
+    \begin{aligned}
+    &l_k(y)\leqslant 0\quad k\in J\notag \\
+    &h_j(y)=0 \quad j\in l_2\notag
+    \end{aligned}
+    \right.
+    \end{align}
+    其中：$i\in I=\{1,2,\ldots,p\}$，$J=\{1,2,\ldots,q\}$，$l_2=\{1,2,\ldots,s\}$,$y\in R^n$为决策变量。$f_i(y),l_k(y),h_j(y):R^n \to R$。
+    \par
+    假设：$f_i,l_k,h_j$为连续可微函数。对上述问题引入变量$\delta \in R$，有
+    \begin{align}
+    \label{最小最大规划的推广2}
+    &\mathop{\min}\  \delta\\
+    &s.t. \left\{
+    \begin{aligned}
+    &f_i(y)\leqslant \delta \quad i\in I\notag \\
+    &l_k(y)\leqslant 0\quad k\in J\notag \\
+    &h_j(y)=0 \quad j\in l_2\notag
+    \end{aligned}
+    \right.
+    \end{align}
+    \begin{lemma}[1]\label{lemma1}
+    如果$(y,\delta)$为(\ref{最小最大规划的推广2})可行的，则$y$为(\ref{最小最大规划的一般形式1})可行的；如果$y$为(\ref{最小最大规划的一般形式1})可行的，则存在$\delta \in R$使得$(y,\delta)$为(\ref{最小最大规划的推广2})可行的。
+    \end{lemma}
+    \begin{lemma}[2]\label{lemma2}
+    如果$\bar{y}$是(\ref{最小最大规划的一般形式1})的最优解，且对应(\ref{最小最大规划的一般形式1})的最优值为$\bar{\delta}$；当且仅当$(\bar{y},\bar{\delta})$为(\ref{最小最大规划的推广2})的最优解，对应(\ref{最小最大规划的推广2})的最优解为$\bar{\delta}$。
+    \end{lemma}
+    \par
+    易知，在引理(1)和引理(2)下，(\ref{最小最大规划的一般形式1})(\ref{最小最大规划的推广2})是等价的。令$x=(\delta , y)\in R^{1+n}$，$g_i(x)=-\delta+f_i(y),i\in I$，$g_k(x)=l_k(y),k \in J$，$\delta(x)=\delta$，$p+q=m$，则(\ref{最小最大规划的推广2})转化为
+    \begin{align}
+    \label{最小最大规划3}
+    &\mathop{\min}\ f(x)\\
+    &s.t.\quad \left\{
+    \begin{aligned}
+    &g_i(x)\leqslant \delta \quad i\in l_1\notag \\
+    &h_j(x)=0 \quad j\in l_2\notag
+    \end{aligned}
+        \right.
+    \end{align}
+    其中：$l_1=\{1,2,\ldots,m\}$，$\{1,2,\ldots,s\}$。记$L=l_1 \cup l_2$，$Q=\{x\in R^{1+n},g_i(x)\leqslant 0,i\in l_1;h_j(x)=0,j \in l_2\}$。
+    \par
+    原问题的Lagrange对偶问题为
+    \begin{align}
+    \label{最小最大规划4}
+    &\mathop{\max}\  I(\mu,\lambda)=\mathop{\inf}\limits_{x}L(x|\mu,\lambda)
+    \end{align}
+    其中：$\mu\in R_{+}^m,\lambda\in R^n$为Lagrange乘子；$L(x,\mu,\lambda)$为拉格朗日函数，$L(x,\mu,\lambda)=f(x)+\mu^\mathrm{T} g(x)+\lambda^\mathrm{T} h(x)$。
+    \par
+    令$Z=\{z|z=(\mu^\mathrm{T} ,\lambda^\mathrm{T} )^\mathrm{T} ,\mu\in R_{+}^m,\lambda\in R^n\}$。对固定$z$，记$D(z)$是$L(x;z)$的全体极小点集。
+    \begin{definition}
+    称$z^*\in Z$是(\ref{最小最大规划3})的Lagrange乘子，若$\mathop{\inf}\limits_{x\in R^{1+n}}L(x;z^*)=f(x^*)$。
+    \end{definition}
+    \begin{Assumption}[1]
+    问题(\ref{最小最大规划3})的最优解集以及Lagrange乘子的集合是非空的。
+    \end{Assumption}
+    \begin{Assumption}[2]
+    对问题(\ref{最小最大规划3})的每个Lagrange乘子$z^*$，$D(z^*)$含有唯一全局最小点。
+    \end{Assumption}
+    \par
+    在假设1和假设2的条件下，我们有以下定理：
+    \begin{theorem}
+    在假设1下，$f(*)=\mathop{\sup}\limits_{z\in Z}I(z)$，$z^*$是(\ref{最小最大规划3})的一个Lagrange乘子的充分必要条件是$z^*$是(\ref{最小最大规划4})的最优解。
+    \end{theorem}
+    \begin{theorem}
+    在假设1,2下$z^*\in Z$，$z^*$是(\ref{最小最大规划4})的最优解的充分必要条件是：对任意$x^*\in D(z^*)$，有$((x^*,z^*)=f(x^*)),g(x^*)\in 0,h(x^*)=0$，且$(x^*,z^*)$为(\ref{最小最大规划3})的KKT点。
+    \end{theorem}
+    \begin{theorem}
+    设$I(z)$如前定义，则$I(z)$是$z\in Z$的凹函数。
+    \end{theorem}
+    \par
+    我们将问题(\ref{最小最大规划4})转化为标准形式
+        \begin{align}
+        \label{最小最大规划5}
+            &\mathop{\min}\ -I(z)\\
+            &s.t.\quad Az \leqslant b \notag
+            \end{align}
+            其中：$z\in R^{m+s}$，$A=[-I_m,0]_{m\times (m+s)}$，$b=0$。
+    易知，问题(\ref{最小最大规划的一般形式1})是一个线性约束的凸规划问题，从全局优化理论来看，已有较为有效的求解方法，下面，我们给出此问题的信赖域方法：
+    \par
+    设第$k$次迭代已有当前迭代点$z_k$，且$z_k$是可行的，对应的信赖域子问题为
+    \begin{align}
+    \label{最小最大规划6}
+    &\mathop{\min}\limits_{d} \ g_k^\mathrm{T} d+\frac 12 d^\mathrm{T} B_kd={\varphi}_k(d)\\
+    &s.t.\quad \left\{
+    \begin{aligned}
+    &A(z_k+d)\leqslant b\notag \\
+    &\|d\|\leqslant {\Delta}_k \notag
+    \end{aligned}
+        \right.
+    \end{align}
+    记$d_k$为(\ref{最小最大规划6})的解。
+    定义比值
+    \begin{align}
+    \label{eq:最小最大规划比值}
+    r_k=\frac{-I(z_k)-(-I(z_k+d_k))}{{\varphi}_k(0)-{\varphi}_k(d_k)}
+    \end{align}
+    由$d_k$的定义，显然$d_k=0$，当且仅当$z_k$是(\ref{最小最大规划5})的KKT点。\\
+    信赖域算法步骤：\\
+    \textbf{step1.}初始化。
+    \par
+    给出$z_1$满足$Az_1\leqslant b,B_1\in R^{(m+s)\times (m+s)}$，${\Delta}_1\geqslant 0,\varepsilon \geqslant 0,k:=1$。\\
+    \textbf{step2.}求解问题(\ref{最小最大规划6})，给出$d_k$(方向)，如果$\|d_k\|\leqslant \varepsilon$，则停止；否则，根据公式(\ref{eq:最小最大规划比值})计算$r_k$：如果$r_k>0$，则$z_{k+1}:=z_{k}+d_k$；否则$z_{k+1}:=z_{k}$。\\
+    \textbf{step3.}如果$r_k\geqslant 0.25$，则转到step4，${\Delta}_k={\Delta}_k/2$，转到step5。\\
+    \textbf{step4.}如果$r_k\geqslant 0.75$，或者$\|d_k\|_{\infty}\leqslant {\Delta}_k$则转到step5；否则${\Delta}_k=2{\Delta}_k$。\\
+    \textbf{step5.}${\Delta}_{k+1}=2{\Delta}_k$，计算矩阵$B_{k+1}$；置$k:=k+1$转到step2。
+    其中：$B_{k+1}$可由拟牛顿公式给出。
+    \par
+    下面，给出算法的一些性质：
+    假设$\{B_k\}$一致有界，即$\exists M>0$，使得$\|B_k\| \leqslant M$。
+    \begin{theorem}
+    在上述假设下，算法所产生的点列$\{z_k\}$有聚点，则必有一个聚点是问题(\ref{最小最大规划5})的K-T点。
+    \end{theorem}
+    \begin{corollary}
+    算法产生的点列为$\{z_k\}$，设$\{x_k\} \in D\{z_k\},k=1,2,\ldots$，则$\{x_k\}$的每一个聚点都是(\ref{最小最大规划3})的最优解
+    \end{corollary}
+\section{MATLAB应用实例}
+    \par
+    MATLAB采用fminimax求解极小极大规划问题，fminimax可以解决的极小极大规划问题的一般形式如下
+    \begin{align*}
+    &\mathop{\min}\limits_{x}\  \mathop{\max}\limits_{i}\ f_i(x)\\
+    &s.t.\quad \left\{
+    \begin{aligned}
+    &c(x)\leqslant 0\\
+    &ceq(x)=0\\
+    &Ax\leqslant b\\
+    &Aeq\cdot x=beq\\
+    &lb\leqslant x\leqslant ub
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    fminimax的调用格式为
+    \par
+    [x,fval,maxfval,exitflag,output,lambda]=fminimax(fun,x0,A,b,Aeq,beq,lb,ub,nonlcon,options)\\
+    其中：输入可以变为结构体，例：problem,objective等；maxfval为目标函数在解x处的最大值。应用fminimax求解前面的引例2(\ref{引例2})，求解程序如下
+    \lstset{flexiblecolumns}
+    \begin{lstlisting}[language=Matlab]
+    func = @(x)[x(1)*sin(x(2));1-x(1)*x(2)];
+    x0 = [0.5,0.3];
+    A=[];b=[];
+    Aeq=[];beq=[];
+    lb = [0,0];
+    ub = [0,0];
+    x = fminimax(fun,x0,A,b,Aeq,beq,lb,ub);
+    \end{lstlisting}
+

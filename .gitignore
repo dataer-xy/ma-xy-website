@@ -1,0 +1,14 @@
+node_modules
+test
+images
+new
+__pycache__
+# 过滤掉私有的
+artwork
+texsrc/pdf
+texsrc/src/images
+texsrc/out
+texsrc/new
+安排
+dist
+public

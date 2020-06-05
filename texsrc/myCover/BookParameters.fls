@@ -1,0 +1,4 @@
+PWD C:/Users/yanyisong/Desktop/模型与算法/封面创作/latex-createspace-bookcover-master
+INPUT d:/texlive/2016/texmf-var/web2c/xetex/xelatex.fmt
+INPUT ./BookParameters.tex
+OUTPUT BookParameters.log

@@ -1,0 +1,457 @@
+
+\chapter{半定规划}
+\section{半定规划的产生与发展}
+    \par
+    半定规划(Semxdefinite Programming)简称SDP，可视为线性规划的推广。SDP几乎和LP同时产生，但由于产生初期缺乏有效的处理方法而被遗忘。上世纪八九十年代，Fletder激发了SDP的研究，出现了许多SDP的理论上高效的算法，尤其是内点法的产生，更引发了SDP研究的高潮。
+    \par
+    1984年，Karmarkar提出LP的内点法。该算法具有多项式复杂性，在实践中效果很好。内点法随后被用于处理凸二次规划和某些线性互补问题。1984-1997年间，LP的内点法几乎趋于完善。1988年，Nesterov和Nemirovsky在研究具有自协调性质的障碍函数时，证实了内点法原则上可以运用到一切凸优化问题。为了实用，障碍函数的一阶二阶导数必须易于计算。Nesterov和Nemirovsky证实了每一个凸集都存在一个自协调障碍函数。但一般来说，它们的自协调障碍函数不易于计算。幸运的是，SDP有易于计算的障碍函数。
+    \par
+    关于一般凸优化问题的内点法，可参考1993.Den Hertog的《Interior point approch to linear quadratic and convex programming》。
+    1997年，Nesterov和Nemirovsky、Alizadeh与Kamath、Karmarkar独立地把LP的内点法推广到了半定规划。
+    此外，用于求解SDP的方法还有势下降算法、割平面方法等。
+    \par
+    九十年代中期开始，不可行内点算法逐渐兴起。上个世纪末，SDP又被推广到了非线性半定规划(NLSDP)，即线性或非线性目标函数受到非线性矩阵不等式和向量不等式约束的优化问题。已有的算法有：SQP方法、内点法、增广Lagrange方法、分支切割法等。
+\section{线性半定规划}
+    \subsection{线性半定规划的一般形式}
+        \par
+        线性半定规划是线性规划的一种推广：目标函数为线性函数，约束条件为对称矩阵的仿射组合半正定。这个约束是非线性的、非光滑、凸的，因而SDP是一个非光滑凸优化问题。
+        \par
+        线性半定规划的标准形式如下
+        \begin{align*}
+          & \mathop{\min} \  C\bullet X\\
+          & s.t.\left\{
+          \begin{aligned}
+          & A_i\bullet X=b_i\quad i=1,2,\ldots,m\\
+          & X \succeq 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        其中：$b_i$为正实数，$\bullet$或者$\big<{A,B}\big>$表示Frobenius内核。
+        \par
+        当$A,B\in R^{n\times n},R^{n\times n}$时，有
+        \begin{align*}
+          \big<{A,B}\big>=A\bullet B=\mathop{\sum}\limits_i\mathop{\sum}\limits_jA_{ij}B_{ij}=\mathrm{Tr}(A^\mathrm{T} B)
+        \end{align*}
+        设$S^n$是${n\times n}$实对称矩阵全体，$X \in S^n,X \succeq 0$表示$X$为半正定，$X\succ 0$为正定，$C,A_i \in R^{n\times n}$。
+        \par
+        不失为一般性，可以假设$C,A_i \in S^{n}$，否则，令
+        \begin{align*}
+          & C=(C+C^\mathrm{T} )/2\\
+          & A_i=(A_i+A_i^\mathrm{T} )/2
+        \end{align*}
+        为了方便，我们引进\underline{线性算子$A:S^n \to R^m$}
+        \begin{align*}
+          AX=\begin{pmatrix} A_1\bullet X \\A_2\bullet X\\\vdots\\A_m\bullet X\end{pmatrix}
+        \end{align*}
+        令$b=(b_1,b_2,\cdots,b_m)^\mathrm{T} $，则SDP可以写为
+        \begin{align*}
+          & \mathop{\min} \quad C\bullet X\\
+          & s.t.\left\{
+          \begin{aligned}
+          AX=b\\
+          X \succeq 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        $A$的伴随算子记为$A^\mathrm{T} :R^m\to S^n:\forall X\in S^n,y\in R^m$，有
+        \begin{align*}
+          \big<{AX,y}\big>=\big< {X,A^\mathrm{T} y}\big>
+        \end{align*}
+        因为
+        \begin{align*}
+          \big< {AX,y}\big>=\mathop{\sum}\limits_{i=1}^my_i\mathrm{Tr}(A_iX)=\mathrm{Tr} \left( X\mathop{\sum}\limits_{i=1}^my_iA_i \right) =\big< {X,A^\mathrm{T} y}\big>
+        \end{align*}
+        所以有$A^\mathrm{T} y=\mathop{\sum}\limits_{i=1}^my_iA_i$。
+    \subsection{对偶性}
+        \subsubsection{对偶问题}
+            \par
+            利用Lagrange方法，可以得到线性半定规划的对偶问题：
+            \begin{align*}
+              & \mathop{\max} \  b^\mathrm{T} y\\
+              & s.t. \left\{
+               \begin{aligned}
+              & A^\mathrm{T} y+Z=c\\
+              & Z \succeq 0
+              \end{aligned}
+              \right.
+            \end{align*}
+            其中：$Z\in S^m$，$y \in R^m$，$A^\mathrm{T} :R^m\to S^n$为$A$的伴随算子。
+        \subsubsection{对偶理论}
+            \par
+            线性半定规划是线性规划的推广，它与线性规划有类似的对偶理论。
+            \begin{lemma}[1]
+            设$A,B\in S^n$，且$A\succeq 0,B \succeq 0$，则$A\bullet B\geqslant 0$。
+            \end{lemma}
+            \begin{lemma}[2]
+            设$A,B\in S^n$，且$A\succeq 0,B \succeq 0$，则$A\bullet B= 0$当且仅当$AB=0$。
+            \end{lemma}
+            \begin{theorem}[弱对偶定理]
+            令$X,y$分别为原问题P和对偶问题D的可行解，则
+            \begin{align*}
+               C \bullet X \geqslant b^\mathrm{T} y
+            \end{align*}
+            \end{theorem}
+            \par
+            下面，引进严格可行域的概念：
+            \begin{align*}
+            & {\mathscr{F}}^0(P)=\{X|AX=b,X>0\} \\
+            & {\mathscr{F}}^0(D)=\{y|A^\mathrm{T} y+Z=C,Z>0\}
+            \end{align*}
+            同样可定义可行域
+            \begin{align*}
+              & {\mathscr{F}}(P)=\{X|AX=b,X\geqslant 0\}\\
+              & {\mathscr{F}}(D)=\{y|A^\mathrm{T} y+Z=C,Z \geqslant 0\}
+            \end{align*}
+            \begin{theorem}[强对偶定理]
+            (1)如果P存在可行解或者D存在可行解，则$p^*=d^*$。\\
+            (2)如果P和D都存在可行解，则$p^*=d^*$，且${\mathscr{F}}(D)\neq \phi$，${\mathscr{F}}(P)\neq \phi$。
+            \end{theorem}
+            \par
+            如果P和D都存在严格可行解，则至少存在一对原始 - 对偶最优解，即${\mathscr{F}}(D)\neq \phi$，${\mathscr{F}}(P)\neq \phi$。从而就存在可行解$X,y$，使得$\big<{C\bullet X}\big>=b^\mathrm{T} y=p^*=d^*$，$\eta=\big<{Z, X}\big>=0$。由$A\circ B \Leftrightarrow AB = 0$，有$XZ=0$。将$XZ=0$称为互补松弛条件，它可以看成是线性规划互补松弛条件的推广。
+        \subsubsection{最优解条件-KKT条件}
+            \par
+            若P和D存在严格可行解，则$X$为P的最优解，当且仅当存在$(X,Z)\in S^n\times S^n$，使得
+            \begin{align*}
+              & AX=b\quad X\geqslant 0\\
+              & A^\mathrm{T} y+Z=C\quad Z \geqslant 0\\
+              & XZ=\langle{Z\circ X}\rangle=0
+            \end{align*}
+            \par
+            需要指出的是，尽管$X$和$Z$都是对称半正定的，但$XZ$却未必对称。若记
+            \begin{align*}
+              F(X,y,Z)=\begin{pmatrix} A^\mathrm{T} y+Z-C \\AX-b\\XZ\end{pmatrix}
+            \end{align*}
+            则$F(X,y,Z)$为$S^n\times R^m\times S^n\to S^n\times R^m\times R^{n\times m}$的函数。所以，上述最优化方程组是超定的，不能直接用牛顿法求解。
+\section{半定规划的应用}
+    \subsection{线性规划转化为半定规划}
+        \par
+        考虑如下线性规划问题
+        \begin{align*}
+          & \mathop{\min} \ c^\mathrm{T}  x\\
+          & s.t.\left\{
+          \begin{aligned}
+          &  a_i^\mathrm{T} x=b_i\quad i=1,2,\ldots ,m\\
+          & x \geqslant 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        其中：$x,c,a_i\in R^n$，$b_i$为实数。$i\in J=\{1,2,\ldots ,m\}$。令$Diag(x)\in R^{n\times n}$表示由向量$x$中的分量构成的对角矩阵。diag是$Diag$的伴随算子。$x\geqslant 0$表示其每一个分量非负。令$X=Diag(x),C=Diag(c),A_i=Diag(a_i),i\in J$。由于$x\geqslant 0\Leftrightarrow X\succeq 0$，则线性规划可转化为半定规划：
+        \begin{align*}
+          & \mathop{\min} \  C\bullet X\\
+          & s.t.\left\{
+          \begin{aligned}
+          & A_i\bullet X=b_i\quad i=1,2,\ldots ,m\\
+          & X \succeq 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        易知，若$X$为上述SDP的最优解，则$x^*=Diag(diag(X))$也是其最优解，从而SDP与LP可以转化。
+    \subsection{二阶锥规划}
+        \par
+        考虑如下二阶椎规划
+        \begin{align*}
+          & \mathop{\min} \  c^\mathrm{T}  x\\
+          & s.t.\quad \|A_ix+b_i\|\leqslant c_i^\mathrm{T} x+d_i\quad i=1,2,\ldots ,m
+        \end{align*}
+        其中：$x\in R^n,c\in R^n,A_i\in R^{n\times n}$，$c_i\in R^n,d_i\in R,i\in J$，$\|u\|=(u^\mathrm{T} u)^{\frac 12 }$。其约束可以转化为如下形式
+        \begin{align*}
+          \begin{pmatrix} (c_i^\mathrm{T} x+d_i)I & A_ix-b_i\\(A_ix+b_i)^\mathrm{T} & c_i^\mathrm{T} x+d_i\end{pmatrix}\geqslant 0
+        \end{align*}
+        故，二阶锥可转化为
+        \begin{align*}
+          & \mathop{\min} \  c^\mathrm{T}  x\\
+          & s.t.\left\{
+          \begin{aligned}
+          &\begin{pmatrix} (c_i^\mathrm{T} x+d_i)I & A_ix-b\\(A_ix+b_i)^\mathrm{T} & c_i^\mathrm{T} x+d_i\end{pmatrix} \geqslant 0\\
+          & i=1,2,\ldots ,m
+          \end{aligned}
+          \right.
+        \end{align*}
+    \subsection{二次约束二次凸规划}
+        \par
+        带二次约束的二次凸规划的一般形式如下：
+        \begin{align*}
+          & \mathop{\min} \ x^\mathrm{T}  Q_0x-q_0^\mathrm{T} x-c_0\\
+          & s.t. \left\{
+          \begin{aligned}
+          & x^\mathrm{T} Q_ix-q_i^\mathrm{T} x= c_i\\
+          & i=1,2,\ldots ,m
+          \end{aligned}
+          \right.
+        \end{align*}
+        其中：$Q_i\in S^n$且半正定，$q_i \in R^n,c_i \in R$。
+        \par
+        因为$Q_i$是对称的半正定矩阵，则存在$B_i$使得$Q_i=B_i^\mathrm{T} B_i$，从而二次约束可转化为
+        \begin{align*}
+          \begin{pmatrix} I & B_ix\\ x^\mathrm{T} B_i^\mathrm{T}  & q_i^\mathrm{T} x+B_i\end{pmatrix}\succeq 0\quad i=1,2,\ldots ,m
+        \end{align*}
+        于是原问题可转化为半定规划
+        \begin{align*}
+          & \mathop{\min} \quad t\\
+          & s.t.
+          \left\{
+          \begin{aligned}
+          & \begin{pmatrix} I & B_0x\\ x^\mathrm{T} B_0^\mathrm{T}  & q_0^\mathrm{T} x+B_0+t\end{pmatrix}\succeq 0\\
+          & \begin{pmatrix} I & B_ix\\ x^\mathrm{T} B_i^\mathrm{T}  & q_i^\mathrm{T} x+B_i\end{pmatrix}\succeq 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        其中：优化变量为$(x^\mathrm{T} ,t^\mathrm{T} )^\mathrm{T} $。
+\section{最优化算法}
+    \par
+    由于线性半定规划是凸规划，所以可以根据其可行解集的结构来构造多项式时间算法，如椭圆算法。但椭圆算法在实际运行中效果较差。Nesterov和Alizadeh分别独立地用线性半定规划的最优条件得到了内点算法。Alizadeh证明了大多数线性规划的内点算法可以推广到半定规划上，Nesterov和Nemirovskii利用自concordant罚函数的定义给出了用内点算法求解锥规划的更完善的理论，证明了半定规划存在多项式时间算法。
+    \par
+    内点算法按其下降方式分类可分为：路径跟踪算法、势下降算法等；从处理的规则来分可分为：原内点算法、对偶调比内点算法和原始-对偶内点算法；从产生的迭代点列是否满足约束可分为：可行与不可行内点算法。虽然不可行内点算法易于实现，但没有可行内点算法易于进行理论分析。
+    % 内点算法的基本思想是将约束问题转化为无约束问题。常用方法是在目标函数中加一个罚项，罚项在可行域内的值充分小，在可行域边界处，罚项值充分大，从而使迭代点列总保持在可行域内。
+    \par
+    内点算法适用于小规模的问题，对于大规模问题，存在内存要求过大，执行时间过长等缺点。在一定条件下，线性半定规划可转化为特征值优化问题。利用非光滑优化技术发展起来的非光滑优化方法—谱丛方法成为近几年来求解较大规模问题的有效算法。
+    \subsection{原始-对偶路径跟踪内点算法}
+        \par
+        我们在原半定规划的目标函数中加入罚函数$-\mu {\log} \det(X)$。其中，$\mu$为罚权重
+        \begin{align*}
+          & \mathop{\min} \ C\bullet X-\mu {\log} \det(X)\\
+          & s.t.\left\{
+          \begin{aligned}
+          & AX=b\\
+          & X \succeq 0
+          \end{aligned}
+          \right.
+        \end{align*}
+        \par
+        因为$\forall d \in R$，集合$\{X|AX=b,\langle{C, X}\rangle=d,X\succeq 0\}$是有界闭集，且上述目标函数是严格凸的，所以，上述罚问题的最优解存在唯一，且易知，其最优解一定存在半正定约束的内部。通过引进拉格朗日乘子$y$，可将上述约束问题转化为如下无约束优化
+        \begin{align*}
+          L(X,y,\mu)=C\bullet X-\mu {\log}\det(X)+y^\mathrm{T} (b-AX)
+        \end{align*}
+        $L(X,y,\mu)$是定义在$S_{+}''$上的凸函数，其最优性条件为
+        \begin{align*}
+          & {\nabla}_xL=C -\mu X^{-1}-A^\mathrm{T} y=0\\
+          & {\nabla}_yL=b -A X=0
+        \end{align*}
+        令$Z =\mu X^{-1}$，可得到
+        \begin{align}
+        \label{原始-对偶路径跟踪内点算法1}
+          & AX=b\quad X>0\\
+          & A^\mathrm{T} y+Z=C\quad Z>0\\
+          & ZX=\mu I
+        \end{align}
+        其中：第一个条件为原问题的严格可行解条件，第二个条件使对偶问题的严格可行解条件，第三个条件是当$\mu\to 0$时相应的互补松弛条件$ZX=0$。上面的方程组(\ref{原始-对偶路径跟踪内点算法1})仅是必要条件而非充分。
+        \par
+        对于不固定的$\mu$，方程组(\ref{原始-对偶路径跟踪内点算法1})存在唯一解$(X_{\mu},Z_{\mu})$。$X_{\mu}$和$Z_{\mu}$分别构成的曲线称为中心路径，这是一条光滑曲线。下面证明：当$\mu \to 0$时，$(X_{\mu},Z_{\mu})$存在聚点。若$(X^*,Z^*)$是$(X_{\mu},Z_{\mu})$的聚点，那么，$X^*$和$Z^*$分别为原问题和对偶问题的最优解。
+        \begin{lemma}
+                令$A,B\in S_{+}^n$，则${\lambda}_{min}(A){\lambda}_{max}(B)\leqslant \big<{A,B}\big>\leqslant n{\lambda}_{min}(A){\lambda}_{max}(B)$。
+        \end{lemma}
+        \begin{lemma}
+                令$X',X''\in \{X\in S'|AX=b\}$和$Z',Z''\in \{Z=C-A^\mathrm{T} y,y \in R^n\}$，则$\langle{X'-X'',Z'-Z''}\rangle=0$。
+        \end{lemma}
+        \begin{theorem}
+                对给定的序列$\{{\mu}_k\}$，满足${\mu}_k>0$且当$k\to \infty$时有${\mu}_k\to 0$。当${\mu}_k\to 0$时，$({X_{\mu}}_k,{Z_{\mu}}_k)$一定存在聚点，且如果$(X^*,Z^*)$是$({X_{\mu}}_k,{Z_{\mu}}_k)$的聚点，则$X^*$和$Z^*$为原始-对偶问题的最优解。
+
+        \end{theorem}
+         \par
+        为了确定$({X_{\mu}}_k,{Z_{\mu}}_k)$，需要解如下方程组
+        \begin{align*}
+          {F}_{\mu}(X,y,Z)=\begin{pmatrix}AX-b\\ A^\mathrm{T} y+Z-C \\XZ-\mu I\end{pmatrix}=0
+        \end{align*}
+        我们称这个方程组为中心路径方程组，它的解$(X_{\mu},Y_{\mu},Z_{\mu})$为解析中心路径。
+        \par
+        利用牛顿法求解
+        \begin{align*}
+          {F}_{\mu}+\nabla {F}_{\mu}\cdot (\Delta x,\Delta y,\Delta z)^\mathrm{T} =0
+        \end{align*}
+        可得到搜索方向$(\Delta x,\Delta y,\Delta z)$。其相当于解如下线性系统
+        \begin{align}
+        \label{eq:SDP的线性系统}
+          & A \Delta x =-(AX-b)=:-r_p\\
+          & A^\mathrm{T} \Delta y+\Delta z^\mathrm{T} =-(A^\mathrm{T} y+Z-C)=:-r_d\\
+          & \Delta x Z+X\Delta z=\mu I-XZ=:-r_c
+        \end{align}
+        上述线性系统是一个超定的方程组，不能直接利用牛顿法求解，我们可以考虑对称化方案。
+        \par
+        由于一般的$X,Z$是不可变换的，这样解上式得到的$\Delta z$虽然是对称的，但$\Delta x$一般是不对称的，这与下一步迭代需要$X+\alpha \Delta x$是对称的矛盾。利用不同的对称技巧，可以得到不同的内点算法，主要有NT方向、HKM方向、AHO方向等。这些方法得到的$\Delta x$是对称的。在降低对偶间隙方向，AHO方法最好，利用AHO方法，算法终止时的对偶间隙一般小于利用HKM方法或者NT方法的10—100倍；在计算量方面，NT方法少于AHO方法，但微大于HKM方法；在稳定性方面，NT方法是最好的。
+        \par
+        Zhang通过引进对称化算子，统一了这些方向
+        \begin{align*}
+          H_p(M)=\frac 12(PMP^{-1}+(PMP^{-1})^\mathrm{T} )
+        \end{align*}
+        则$\Delta x Z+X\Delta z=\mu I-XZ$等价于$H_p(XZ,\Delta x Z,X\Delta z)=\mu I$。
+        \par
+        当$P=X^{-\frac 12}$时为KM方向；当$P=Z^{\frac 12}$时为HKM方向；当$P^\mathrm{T} P=w$时为NT方向；当$P=I$时为AHO方向。其中，$W=X^{\frac 12}(X^{\frac 12}ZX^{\frac 12})^{-\frac 12}X^{\frac 12}$。下面给出内点算法的一般框架。\\
+        \textbf{step1.}初始化。初始可行点$(X^0,y^0,Z^0)$，满足$X^0>0,Z^0>0$。 \\
+        \textbf{step2.}选择$\mu$。\\
+        \textbf{step3.}计算$(\Delta x,\Delta y,\Delta z)$。如需对称化，可利用上面的对称化算子得到对称矩阵。\\
+        \textbf{step4.}选择步长${\alpha}$，使$X+\alpha \Delta x，Z+\alpha \Delta z$均大于0。\\
+        \textbf{step5.}进行如下更新
+        \begin{align*}
+        & X:= X+ \alpha \Delta x\\
+        & y:= y+ \alpha \Delta y\\
+        & Z:= Z+ \alpha \Delta z
+        \end{align*}
+        \textbf{step6.}如果$\|AX-b\|$，$\|A^\mathrm{T} y+Z-C\|_F$，$\langle{X, Z}\rangle$都足够小，则停止；否则，返回step2。
+        \paragraph{HKM方向}
+        HKM搜索方向就是建立在对称化的KKT条件使用牛顿法的基础上进行的。我们通过求解线性化的中心路径方程组(CPE)得到HKM搜索方向。
+        \par
+        首先，由方程组(\ref{eq:SDP的线性系统})中的第二个方程得
+        \begin{align}
+        \label{HKM方向1}
+        \Delta z=-A^\mathrm{T} \Delta y-r_d
+        \end{align}
+        然后把它代入最后一个方程得
+        \begin{align}
+        \label{HKM方向2}
+        \Delta x& =-X(\Delta z)Z^{-1}-r_cZ^{-1}\notag \\
+        & =X(A^\mathrm{T} \Delta y+r_d)Z^{-1}-r_cZ^{-1} \notag \\
+        & =X(A^\mathrm{T} \Delta y+r_d)Z^{-1}-X+\mu Z^{-1}
+        \end{align}
+        再把$\Delta x$代入第一个方程组，得
+        \begin{equation}
+        \label{HKM方向3}
+        \begin{split}
+        A(XA^\mathrm{T} \Delta yZ^{-1})& =A(-\mu Z^{-1}+X-Xr_dZ^{-1})-r_p \\
+        & =A(-\mu Z^{-1}-Xr_dZ^{-1})+b
+        \end{split}
+        \end{equation}
+        由此可得出$\Delta y$，然后再代回(\ref{HKM方向1})即得$\Delta z$。这里需要注意的是，由式(\ref{HKM方向1})可以看出$\Delta z$是对称矩阵。但由式(\ref{HKM方向2})可知$\Delta x$未必对称，所以，需要把$\Delta x$对称化，只需要将它投影到$S_{+}^n$上。譬如，我们可以取对称算子$B:X\to \frac {X+X^\mathrm{T} }{2}$，即以$\frac{\Delta x+\Delta x^\mathrm{T} }{2}$代替$\Delta x$。这样，我们便得到了搜索方向$\Delta s=(\Delta x,\Delta y,\Delta z)^\mathrm{T} $。
+    \subsection{非光滑优化方法}
+        \par
+        一个对称矩阵是半正定的等价于其最小特征值非负：${\lambda}_{min}(X)\geqslant 0$，即${\lambda}_{max}(-X)\leqslant 0$。由于这个性质，半定规划SDP与基于矩阵仿射集上的特征值优化有着密切的联系。设${\mathscr{F}}(P)=\{X|AX=b,X\geqslant 0\}$是一有界集。若原SDP问题具有可行集${\mathscr{F}}$，则P与D无对偶间隙，且存在$\bar{y}\in R^m$，使得
+        \begin{align*}
+        A^\mathrm{T} \bar{y}=I
+        \end{align*}
+        \par
+        在对偶问题D中，$Z\succeq 0$等价于${\lambda}_{max}(-Z)\leqslant 0$，利用Lagrange乘子法，将条件$Z\succeq 0$加入目标函数，得到无约束非光滑优化问题
+        \begin{align}
+        \label{无约束非光滑优化问题1}
+        \mathop{\min}\limits_{y \in R^m}\ {\mu}_0{\lambda}_{max}(C-A^\mathrm{T} y)+b^\mathrm{T} y
+        \end{align}
+        \begin{lemma}
+        若A满足$A^\mathrm{T} y=I$，令$\mu =\max\{0,b^\mathrm{T} \bar{y}\}$，则对偶问题D等价于上式(\ref{无约束非光滑优化问题1})。进而，如果原问题P有可行解，则所有可行解$X\in {\mathscr{F}}(P)$满足$\mathrm{Tr}(X)={\mu}_0$，并且可得到最优值$p^*$，$p^*=d^*=\min b^\mathrm{T} y$。
+        \end{lemma}
+        \par
+        下面，研究最大特征值函数${\lambda}_{max}(\cdot)$。
+        矩阵$X$的最大特征值函数可以表示为${\lambda}_{max}(X)=\mathop{\max}\limits_{\|p\|=1}p^\mathrm{T} Xp$。当$p$是$X$的最大特征值对应的单位特征向量时，${\lambda}_{max}(X)=p^\mathrm{T} Xp$，令
+        \begin{align*}
+        \Omega=\{W\succeq 0|W \bullet I =1 \}
+        \end{align*}
+        则$\Omega$是集合$\{pp^\mathrm{T} |\ \|p\|=1\}$的凸包。将$p^\mathrm{T} Xp$转化成矩阵内积的形式$\langle{X,pp^\mathrm{T} }\rangle$，则
+        \begin{align*}
+        {\lambda}_{max}(X) = \max\{ \big<X,W\big>|W \in \Omega \}
+        \end{align*}
+        由凸分析的相关知识，易知$\Omega$有界，$\lambda_{max}(X)$是凸函数，且lipschitz连续。因此，$\lambda_{max}(X)$在$X$处次微分$\partial \lambda_{max}(X)$，即满足不等式
+        \begin{align*}
+        {\lambda}_{max}(Y)\geqslant {\lambda}_{max}(X)+\langle{W,Y-X}\rangle,\quad \forall Y\in S^n
+        \end{align*}
+        $W$的合集为
+        \begin{align*}
+        \partial {\lambda}_{max}(X)& =\{W \in \Omega |\langle{X,W}\rangle = {\lambda}_{max}(x)\}\\
+        & =\{p\cup p^\mathrm{T} |\mathrm{Tr}(V)=1,V\succeq 0\}
+        \end{align*}
+        其中：$p$的列由$X$的最大特征值对应的特征向量空间的标准正交基组成。
+        \par
+        令$f(y)={\mu}_0{\lambda}_{max}(C-A^\mathrm{T} y)+b^\mathrm{T} y$，容易知$f(y)$是凸函数，且有
+        \begin{align*}
+        \partial {\lambda}_{max}(C-A^\mathrm{T} y_k)& =\{W \succeq 0 |\mathrm{Tr}(W)={\mu}_0,\langle{C-A^\mathrm{T} y,W}\rangle = {\lambda}_{max}(C-A^\mathrm{T} y)\}\\
+        & =\{p\cup p^\mathrm{T} |\mathrm{Tr}(V)=\mu,V\succeq 0\}
+        \end{align*}
+        以及
+        \begin{align*}
+        \partial f(y) =\{\xi|\xi=b-{\mu}_0AW,W\in \partial {\lambda}_{max}(C-A^\mathrm{T} y)\}
+        \end{align*}
+        其中：矩阵P的列构成$C-A^\mathrm{T} y$的最大特征值所对应的特征向量空间中的标准正交基。
+        \par
+        关于非光滑凸规划解的一阶最优性条件，我们有：
+        \begin{theorem}
+        设$f:R^n\to R$是凸函数，则下列条件等价\par
+        \ding{172}$O \in \partial f(x)$；\par
+        \ding{173}$x$是$f$的最优解，即$f(x)\leqslant f(y),\forall y \in R^n$
+        \end{theorem}
+        \par
+        在光滑凸规划中，负梯度方向是最速下降方向，利用该方向可设计最速下降算法。但在非光滑凸规划中，负次梯度(次微分元素)方向并不一定是下降方向。关于下降方向有如下定理
+        \begin{theorem}
+        设$f:R^n\to R$是凸函数，$x$不是$f$的最优解，$g$满足
+                \begin{align}
+                \label{g满足的条件}
+                g ={\min}\{\|g\||g \in \partial f(x)\}
+                \end{align}
+        则$-g$是具有最速下降性质的下降方向。
+        \end{theorem}
+        \par
+        但在实际应用时，上式(\ref{g满足的条件})一般不能精确求解，利用它计算很难保证收敛。同时，次微分$\partial f(x)$并不是对任何问题都容易求。由此，产生了一在非光滑优化中到重要作用的技术—向量化技术。设目标函数$f$是凸的局部Lipschitz函数，$f$以及它的一个次梯度$g_{f}\in \partial f(x)$可以计算。易知，式(\ref{g满足的条件})满足上述条件。
+        \par
+        算法产生$R^n$中的一个序列$\{x^k\}_k$和一个试验点序列$\{y^k\}_k$，设$x'=y'$。在第$k$个迭代点上，在$y^k$处作$f$的线性近似
+        \begin{align*}
+        {\bar {f}}(x,y^k) = f(y^k)+g_f(y^k)^\mathrm{T} (x- y^k)
+        \end{align*}
+        设$f$的一个凸包络函数(割平面模)为
+        \begin{align*}
+        {\hat {f}^k}(x) = {\max}\{{\bar {f}}(x,y^j)|j=1,2,\cdots,k\}
+        \end{align*}
+        按下式来选取一个试验点
+        \begin{align*}
+        y^{k+1} = \arg{\mathop {\min}\limits_{x\in R^n} }\{{\hat {f}^k}(x)+{\mu}^k\|x-{\mu}^k\|^2/2 \}
+        \end{align*}
+        其中：取${\mu}^k>0$是为了使$y^{k+1}$取在${\hat {f}^k}$值同$f$值比较接近的区域内，这也是一种安全措施，当$y^{k+1}$处的值比$x^k$处足够好时，即满足
+        \begin{align*}
+        f(y^{k+1}) \leqslant f(x^k) - y(f(x^2)-{\hat {f}^k}(y^{k+1}))
+        \end{align*}
+        其中：$\eta \in (0,0.5)$，$f(x^k)-{\hat {f}^k}(y^{k+1})$为预期的下降量。因此，上式表示在$y^{k+1}$处，$f$值有明显下降。于是令$x^{k+1}=y^{k+1}$，否则令$x^{k+1}=x^k$，再以$y^{k+1}$进行下一次迭代。
+        \par
+        Helmberg和Rendl将这种方法推广并应用到式(\ref{g满足的条件})上，得到谱向量丛方法。这里的推广指的是将上述的凸包络函数(即割平面模)中的平面变成了曲面，从而伴随着每次迭代要求解一个小规模的二次半定规划(上述方法是解一个二次凸规划)。
+        % \textcolor[rgb]{1,0,0}{这里的文献没写}
+    \subsection{一阶非线性规划算法}
+        todo:《最优化基础.docx》
+\section{非线性半定规划}
+    \subsection{一般形式}
+        \par
+        前面介绍了线性半定规划，下面介绍非线性半定规划。非线性半定规划(NLSDP)的一般形式为
+        \begin{align*}
+          & \mathop{\min} \  f(x)\\
+          & s.t.\quad G(x) \preceq 0
+        \end{align*}
+        其中：$x \in R^n$为优化变量(决策变量)，$f(x):R^m \to R$，$G(x):R^m \to S^n$。
+        \par
+        假设$f(x)$和$G(x)$都在$R^m$上充分光滑，对于$A\in S^n$，设${\lambda}_1(A)\geqslant {\lambda}_2(A)\geqslant \cdots \geqslant {\lambda}_n(A)$是矩阵A的以下降顺序排列的特征值。$A$的特征值分解为$A=P diag({\lambda}_1,{\lambda}_2,\cdots,{\lambda}_n)P^\mathrm{T} $，$A_{\dag}$是一个矩阵，其定义如下
+        \begin{align*}
+          A_{\dag}=Pdiag(({\lambda}_1)_+,({\lambda}_2)_+,\cdots,({\lambda}_n)_+)P^\mathrm{T}
+        \end{align*}
+        其中：$(\lambda)_+=\max\{0,\lambda\}$，容易看出$A_{\dag}$正是$A$在$S_{+}^n$上的正交投影。给定一个矩阵值函数$G(x)$，用$\mathcal{D}G(x)$表示$G(x)$在$x$处的导数
+        \begin{align*}
+          \mathcal{D}G(x)=\bigg(\frac{\partial G(x)}{\partial x^i}\bigg)_{i=1}^m=\bigg(\frac{\partial G(x)}{\partial x_1},\cdots,\frac{\partial G(x)}{\partial x_n}\bigg)^\mathrm{T}
+        \end{align*}
+        我们之所以利用这个记号，是因为
+        \begin{align*}
+          \mathcal{D}G(x)y=\mathop {\sum}\limits_{i=1}^m y_i\frac{\partial G(x)}{\partial x_i}\quad \forall y \in R^m
+        \end{align*}
+        若$v=(v_1,\cdots,v_m)^\mathrm{T} $是一个从$R^m$到$S^n$的线性算子。正如上面的$\mathcal{D}G(x)$那样，对其共轭算子，我们有
+        \begin{align*}
+          v^\mathrm{T} z=(\mathrm{Tr}(v_1z),\cdots,\mathrm{Tr}(v_mz))^\mathrm{T} \quad \forall z \in S^n
+        \end{align*}
+    \subsection{最优性条件}
+        \par
+        我们考虑NLSDP原问题(P)的拉格朗日函数$L:R^m\times S^n \times R^p \to R$，即
+        \begin{align*}
+          L(x,z,\lambda)=f(x)+\mathrm{Tr}(zG(x))
+        \end{align*}
+        对于D的一个可行点$x^*$，其KKT条件为：存在$z^* \in S^n$和${\lambda}^* \in R^p$，使得
+        \begin{align*}
+          & \nabla f(x^*)+\mathcal{D}G(x^*)z^*=0\\
+          & \mathrm{Tr}(z^*G(x^*))=0\\
+          & z^* \succeq 0
+        \end{align*}
+        其中：$(z^*,{\lambda}^*)$称为与$x^*$相对立的KKT条件；$\mathrm{Tr}(z^*G(x^*))=0$称为互补松弛条件。互补松弛条件$\mathrm{Tr}(z^*G(x^*))=0$有下面两种等价形式
+        \begin{align}
+        \label{互补松弛条件等价形式1}
+          & {\lambda}_j(z^*)=0\quad \text{或者}\quad {\lambda}_jG(x^*)\quad \forall j \in \{1,2,\cdots,n\}\\
+          & z^*G(x^*) = 0 \notag
+        \end{align}
+        这两种形式都由下面的Frobenius不等式得到
+        \begin{align*}
+          \mathrm{Tr}(AB)=0 \leqslant \mathop {\sum}\limits_{j=1}^n {\lambda}_j(A){\lambda}_j(B)
+        \end{align*}
+        其中：当且仅当存在一个可逆矩阵$P$使得$P^{-1}$的$P$和$P^{-1}$的$P$同时为对角矩阵。由式(\ref{互补松弛条件等价形式1})，我们可以定义KKT中的严格互补松弛条件为
+        \begin{align*}
+          {\lambda}_j(z^*)=0\Leftrightarrow  {\lambda}_jG(x^*)< 0 ,\quad \forall j \in \{1,2,\cdots,n\}
+        \end{align*}
+        % \par
+        % 最优化算法的序列线性化方法和广义拉格朗日算法可以参考山东科技大学硕士学位论文第4章第5章。
+
+

@@ -1,0 +1,251 @@
+% % \part{优化模型}
+% % \chapter{多目标规划}
+
+\chapter{多目标规划}
+\section{问题的引入与分析}
+    考虑在二次规划中引入的组合投资问题
+    \begin{align*}
+    &\mathop {\min}\  x^\mathrm{T} Qx\\
+    &\mathop {\max}\  r^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop {\sum} x=1\\
+    &0 \leqslant x \leqslant 1
+    \end{aligned}
+    \right.
+    \end{align*}
+    可以发现，上面的引例中有两个优化目标，这种多个目标的规划问题即为多目标规划(MOP)。
+\section{模型规范化及其理论化}
+    \par
+    多目标规划(multi-objective programming, MOP)是在变量满足给定约束的条件下，研究多个目标函数同时极小化的问题，其一般形式为
+    \begin{align*}
+    &\mathop {\min}\  f(x)=(f_1(x),f_2(x),\ldots,f_p(x))^\mathrm{T} \\
+    &s.t.\left\{
+    \begin{aligned}
+    &h_i(x) = 0 \quad i \in E\\
+    & g_j(x) \geqslant 0 \quad j \in I
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$x \in R^n$为决策变量(或称优化变量或自变量)。$g_j(x)$和$h_i(x)$均为约束函数，$I,E$为指标集。$I=\{1,2,\ldots,m\},E=\{1,2,\ldots,n\}$，$f_i(x):R^n \to R$，$f$为向量值目标函数。记MOP的可行域为
+    \begin{align*}
+    S=\{x|x \in R^n,g_j(x)\geqslant 0,h_i(x)=0,i \in E,j \in I\}
+    \end{align*}
+    \par
+    我们把$S$的像集$z=f(S)$称为目标可行域，即因变量域。$z$中元素$z=f(x)$称为目标向量，其中分量$z_i=f_i(x)$是第$i$个目标值。
+    若每个$f_i(i=1,2,\ldots,p)$都是凸函数，并且可行域$S$是凸集，则MOP称为多目标凸规划问题。
+    \par
+    T.C.Koopmans(1951)在其关于数量经济学的工作中，从生产与分配的活动分析的角度提出了多目标规划问题，并且第一次提出了Pareto解的概念。H.W.Kuhn和A.W.Tucker(1951)从数学规划的角度给出了Pareto解的概念，并研究了这种解的充分必要条件，奠定了多目标规划的理论基础。后来，L.Hurwicz(1958)将多目标规划的研究推广到一般的拓扑向量空间中。L.A.Zadeh(1963)从控制论的角度提出了多目标控制问题。
+    \par
+    多目标规划的3个基本研究方向：(1)解的概念和性质，从最早研究的有效集、弱有效集以及1951年Kuhn-Tucker提出的真有效集开始，迄今，有一定影响的最优解的概念不少于20种。对于每一种解的概念，可以考虑解的存在性、最优性条件、解的连通性与稳定性、以及解与解之间的关系等；(2)多目标规划的对偶问题，已存在多种多样的对偶形式。比如Lagrange对偶，共轭对偶等；(3)不可微多目标规划。已经有多种关于导数的推广概念可以应用于这方向的研究，比如广义梯度、Dini次微分等。
+    \par
+    在讨论MOP最优解的概念之前，先引入下面的记号：$\forall x,y \in R^n,xy \in z$为多目标函数值
+    \begin{align*}
+      & x=y \Leftrightarrow x_i=y_i \quad i \in \{1,2,\ldots,n\}\\
+      & x \prec y \Leftrightarrow x_i \leqslant y_i \quad i \in \{1,2,\ldots,n\}
+    \end{align*}
+    但是，存在某个$j$，使得$x_j<y_j$
+    \begin{align*}
+      & x\succ y \Leftrightarrow y-x \prec 0\\
+      & x \leqslant y \Leftrightarrow x_i \leqslant y_i \quad i \in \{1,2,\ldots,n\}\\
+      & x\prec y \Leftrightarrow x_i < y_i \quad i \in \{1,2,\ldots,n\}
+    \end{align*}
+    \subsection{Pareto最优解}
+        \par
+        下面，给出Pareto最优解的概念。
+        给定一个可行点$x^* \in S$，若$\forall x \in S$，有$f(x^*)\leqslant f(x)$，则称$x^*$为MOP的绝对最优解；若不存在$x \in S$，使得$f(x)\prec f(x^*)$，则称$x^*$为MOP的有效解；若不存在$x \in s$，使得$f(x)< f(x^*)$，则称$x^*$为MOP的弱有效解。
+        \par
+        MOP的有效解通常也称为Pareto最优解。绝对最优解、有效解、弱有效解的集合分别记为$S_a,S_p,S_{wp}$。
+        \begin{theorem}
+        对于MOP问题，令$z=f(S)$，$z$的有效点集和弱有效点集分别记为$Z_p$和$Z_{wp}$，则(MOP)的有效解集$S_p$和弱有效解集$S_{wp}$由下面式子给出：
+        \par
+        (1)\ $S_p=\mathop{\bigcup}\limits_{f^*\in Z_p}\{x\in S|f(x)=f^*\}$
+        \par
+        (2)\ $S_{wp}=\mathop{\bigcup}\limits_{f^*\in Z_{wp}}\{x\in S|f(x)=f^*\}$
+        \end{theorem}
+        \par
+        至于解集$S_a,S_p,S_{wp}$之间的关系，我们有:
+        \par
+        (1)\ $S_a \subseteq S_p\subseteq S_{wp} \subseteq S$
+        \par
+        (2)当$S_{a} \neq \phi$时，$S_a = S_p$
+        \par
+        (3)若$S$为凸集，$f$是$S$上严格凸的向量值函数，则$S_p=S_{wp}$
+
+    \subsection{KT-有效集与G-有效集}
+        \par
+        MOP的绝对最优解、有效解和弱有效解等概念分别是通过关系$\le,\prec,<$来描述的。如果将序关系的应用范围加以限定，就可以得到其他形式的最优解概念。比如，$\exists x^* \in S,\delta > 0$，使$x^*$是$f(x)$在变量可行域的子集$S\cap N(x^*,\delta)$上的一个有效解，则称$x^*$是一个局部有效解，相应地，$z^*=f(x^*)$称为目标可行域$z=f(S)$的局部有效点。
+        \begin{definition}
+        对MOP问题，对于$x^* \in S$，令积极不等式约束指标集$I(x^*)=\{i|g_i(x^*)=0\}$，若$x^*$是MOP的有效解，并且不等式组
+        \begin{align*}
+        \left\{
+        \begin{aligned}
+        &\nabla f^\mathrm{T}(x^*)x & < 0\\
+        &\nabla g_{I(x^*)}^\mathrm{T}(x^*)x & \geqslant 0\\
+        &\nabla h^\mathrm{T}(x^*)x& =0
+        \end{aligned}
+        \right.
+        \end{align*}
+        在$R^n$中无解，其中：$\nabla f^\mathrm{T} ,\nabla g_{I(x^*)}^\mathrm{T} $和$\nabla h^\mathrm{T} $分别是向量值函数$f(x),g_{I(x^*)}(x)$和$h(x)$的Jacobi矩阵，则称$x^*$为MOP的Kuhn-Tucker真有效解。
+        \end{definition}
+        \par
+        类似地，若$x^*$是MOP的弱有效解，并且不等式组
+        \begin{align*}
+        \left\{
+        \begin{aligned}
+        &\nabla f^\mathrm{T}(x^*)x & < 0\\
+        &\nabla g_{I(x^*)}^\mathrm{T}(x^*)x & \geqslant 0\\
+        &\nabla h^\mathrm{T}(x^*)x& =0
+        \end{aligned}
+        \right.
+        \end{align*}
+        在$R^n$中无解，则$x^*$称为MOP的Kuhn-Tucker真弱有效解。
+        \begin{definition}
+        假设$x^* \in S$是MOP的有效集，若存在$M>0$，使得对于任意的下标$i(1\leqslant i \leqslant p),\{f_i(x)<f_i(x^*)\}$和$x\in S$，必存在下标$j$，使得$f_j(x)>f_j(x^*)$，并且
+                \begin{align*}
+                f_i(x^*)-f_i(x)\leqslant M(f_j(x)-f_j(x^*))
+                \end{align*}
+        则称$x^*$为MOP的Geoffrion-真有效集，记其集合为$S_p^G$。并且若$S_a\neq \phi$，则$S_a=S_p^G=S_p$。
+        \end{definition}
+\section{最优性条件}
+    \par
+    首先，定义MOP的Lagrange函数如下：
+            \begin{align*}
+            L(x,\beta,\lambda,\mu)={\beta}^\mathrm{T} f(x)-{\lambda}^\mathrm{T} g(x)-{\mu}^\mathrm{T} h(x)
+            \end{align*}
+            其中：$\beta \in R^p,{\lambda} \in R^{|I|},{\mu}\in R^{|E|}$。
+    \begin{theorem}[Fritz John必要条件]
+    假设向量值函数$f,g,h$在$x^*$处可微，若$x^*$是MOP的有效解或弱有效解，则存在向量$\beta \in R_{+}^P,\lambda \in R_{+}^{|I|},\mu \in R_{+}^{|E|}$，使得$(\beta,\lambda,\mu)\neq 0$，并且
+    \begin{align}
+      & {\nabla}_xL(x^*,\beta,\lambda,\mu)={\nabla}f(x^*){\beta}-{\nabla}g(x^*){\lambda}-\nabla h(x^*)\mu=0    \label{Fritz John必要条件1}\\
+      & {\lambda}^\mathrm{T} g(x^*) = 0 \label{Fritz John必要条件2}
+    \end{align}
+    其中：$\nabla f,\nabla g,{\nabla} h$分别表示向量值函数在相应点的梯度矩阵(即Jacobi矩阵的转置)。为了保证目标向量函数的梯度矩阵$\nabla f$对应的参数$\beta \neq 0$，我们需要对约束函数增加一些限制。
+    \par
+    \ding{172}线性约束规格(LCQ)：$g_j,h_i$为线性函数；
+    \par
+    \ding{173}Mangasarian-Fromowitz约束规格(MFCQ)：矩阵$\nabla h(x^*)$列满秩。
+    \par
+    \ding{174}线性独立约束规格(LICQ)：向量组$\{{\nabla}_{g_i}(x^*),{\nabla}_{h_j}(x^*), i\in I(x^*),j\in E\}$是线性无关的。
+    \end{theorem}
+    对于$x\in S$以及$d \in R^n$，若向量$d$满足
+    \begin{align*}
+    & d^\mathrm{T} {\nabla}{g_j}(x) \geqslant 0\quad j \in I(x)\\
+    & d^\mathrm{T} {\nabla}{h_i}(x) = 0\quad i \in E
+    \end{align*}
+    其中：$I(x)$是积极不等式约束的指标集，则称向量$d$为$g,h$在$x$处的一个线性化可行方向。
+    \par
+    约束$g,h$在$x$点的所有线性化可行方向的集合，称为线性化可行方向锥，记为$LFD(x,s)$。对于$x\in S,d\in R^n$，若存在一个向量序列$\{d^k\}$和正数序列$\{{\delta}_k\}$，使得对$\forall k=1,2,\cdots$，有$x+{\delta}_kd^k \in S$并且$d^k \to d,{\delta}_k \to 0$，则称$d$为$S$在$x$处的一个序列化可行方向。集合$S$在$x$点的所有序列化可行方向的集合，称为序列化可行方向锥，记为$SFD(x,s)$。
+    \begin{theorem}[KKT必要条件]
+    假设$f,g,h$在$x^*\in S$处可微，若$x^*$是MOP的有效解或弱有效解，并且在$x^*$点\underline{Kuhn-Tucker}约束规格$LFD(x^*,s)=SFD(x^*,s)$成立，则存在非零向量$\beta \in R_{+}^p$以及${\lambda} \in R^{|I|},\mu \in R^{|E|}$并且满足式(\ref{Fritz John必要条件1})(\ref{Fritz John必要条件2})。
+    \end{theorem}
+    \begin{theorem}[KKT充分条件]
+    假设$f,-g$是凸的，在$x^*\in S$处可微，并且$h$是线性函数，若存在非零向量$\beta \in R_{+}^p$和${\lambda} \in R^{|I|},\mu \in R^{|E|}$满足式(\ref{Fritz John必要条件1})(\ref{Fritz John必要条件2})，则$x^*$是MOP的弱有效解。特别地，当$\beta > 0$时，$x^*$是MOP的有效解。
+    \end{theorem}
+
+\section{最优化算法}
+    对MOP而言，计算所有的最优解是困难的，因为确定整个有效解集的问题是NP难的。下面，介绍一些处理MOP问题的思想。
+    \subsection{线性加权和法}
+        \par
+        根据$p$个目标函数$f_j$的重要程度，赋予各自一定的权重${\lambda}_j$，然后将所有目标函数$f_j$乘上权重${\lambda}_j$求和，变为单目标函数
+            \begin{align*}
+              & \mathop{\min}\limits_{x\in R^n} \ {\lambda}^\mathrm{T} f(x)=\mathop{\sum}\limits_{j} {\lambda}_jf_j(x)\\
+              & s.t.\left\{
+                \begin{aligned}
+              & g(x)\geqslant 0\\
+              & h(x)=0
+                \end{aligned}
+                 \right.
+            \end{align*}
+        其中：$f,g,h$为向量值函数。\\
+        注：$\forall \lambda >0,\mathop{\sum}\limits_{j} {\lambda}_j=1$，单目标问题的最优解是MOP的弱有效解。
+    \subsection{主要目标法}
+        \par
+        根据实际情况，首先确定一个目标函数为主要目标(例$f_1(x)$)，而把其余$p-1$个目标函数$f_j(x)$作为次要目标，然后，再对次要目标选取一定的界限值${\mu}_j(j=2,\cdots,p)$，将其转化为约束条件，例
+        \begin{align*}
+          & \mathop{\min}\limits_{x\in R^n}\  f_1(x)\\
+          & s.t.\left\{
+            \begin{aligned}
+          & g(x)\geqslant 0\\
+          & h(x)=0\\
+          & f_j(x)\leqslant {\mu}_j\\
+          & j=2,3,\cdots,p
+            \end{aligned}
+             \right.
+        \end{align*}
+        注：单目标优化问题的最优解都是MOP的弱有效解。
+    \subsection{极小化极大法}
+        \par
+        极小化极大法的基本思想是，在$f(x)$的$p$个分量中，极小化$f(x)$的最大分量，即
+        \begin{align*}
+           \mathop{\min}\limits_{x\in S} \mathop{\max}\limits_{1\leqslant j \leqslant p} f_j(x)
+        \end{align*}
+        该问题的最优解作为MOP的弱有效解。一般地，可以引入目标函数权向量$\lambda :\lambda \geqslant 0,\mathop{\sum}_{j}{\lambda}_j=1$
+        \begin{align*}
+           \mathop{\min}\limits_{x\in S} \mathop{\max}\limits_{1\leqslant j \leqslant p} {\lambda}_jf_j(x)
+        \end{align*}
+        注：$\forall \lambda \geqslant 0,\mathop{\sum}\limits_{j} {\lambda}_j=1$单目标问题的最优解都是MOP的弱有效解。
+    \subsection{理想点法}
+        \par
+        对每个目标函数$f_j(x)$，事先确定一个目标值$f_j^0$，其中
+        \begin{align*}
+           f_j^0=\mathop{\min}\limits_{x\in S} f_j(x)
+        \end{align*}
+        记理想点为$f^0=(f_1^0,\cdots,f_p^0)^\mathrm{T} $。然后，求解单目标优化问题
+        \begin{align*}
+           \mathop{\min}\limits_{x\in S} \|f(x)-f^0\|_{\alpha}
+        \end{align*}
+        注：对于$\alpha \geqslant 1$单目标问题的最优解是MOP的有效解。
+    \subsection{分层排序法}
+        \par
+        根据目标的重要程度将它们一一排序，然后，分别在前一个目标的最优解集中，寻找后一个目标的最优解集，并把最后一个目标的最优解集作为MOP的最优解。
+        例如：首先，通过求解单目标优化问题
+        \begin{align*}
+           \mathop{\min}\limits_{x\in S} f_1(x)
+        \end{align*}
+        得到最优解集$S^1$，然后，对于$j=2,3,\cdots,p$，依次求解单目标优化问题
+        \begin{align*}
+           \mathop{\min}\limits_{x\in S^{j-1}} f_j(x)
+        \end{align*}
+        得到最优解集$S^j$，然后，将$S^j(j=P)$中的点作为MOP的最优解。
+\section{MATLAB应用实例}
+    \par
+    MATLAB可以使用gamultiobj命令求解多目标规划问题，并且gamultiobj使用多目标遗传算法IENSGA(\rom{2})求解多目标问题。gamultiobj的命令格式如下：
+    \par
+    [x,fval]=gamultiobj(fitnessfcn,nvars,A,b,Aeq,beq,lb,ub,options)\\
+    其中：fitnessfun为目标函数；nvars为变量个数；A,b为$Ax\leqslant b$；Aeq,beq为$Aeq {}x= beq$；lb,ub为$lb \leqslant x \leqslant ub$。
+    下面，我们介绍函数gamultiobj中的一些基本概念：\\
+    \ding{172}个体、种群、代、选择、交叉、变异和交叉后代比例等放在GA章节中介绍；\\
+    \ding{173}支配(dominate)与非劣(non-inferior)：
+    在多目标优化问题中，如果解$x_1 \in R^n$至少有一个目标比解解$x_2 \in R^n$好，而且个体$x_1$的所有目标都不比解$x_2$差，那么称解$x_1$支配解$x_2$，或者$x_1$非劣于$x_2$。\\
+    \ding{174}拥挤距离(crowding distance)：拥挤距离是用来计算某前端中的某个解$x$与该前端中其它解之间的距离，用以表征解之间的拥挤程度，且只有处于同一前端的解之间才需要计算拥挤程度。\\
+    \ding{175}最优前端个体系数(Pareto Fraction)：最优前端个体系数定义为最优前端中的解在种群中所占的比例。
+    \par
+    作为MATLAB的应用实例，多目标遗传算法如下多目标规划问题
+    \begin{align*}
+       & {\min}\quad f_1=x_1^4-10x_1^2+x_1x_2+x_2^4-x_1^2x_2^2\\
+       & {\min}\quad f_2=x_2^4-x_1^2x_2^2+x_1^4+x_1x_2\\
+       & s.t.\quad \left\{\begin{aligned}
+       & 5 \leqslant x_1 \leqslant 5\\
+       & -5 \leqslant x_2 \leqslant 5
+       \end{aligned}
+       \right.
+    \end{align*}
+    求解程序如下
+    \begin{lstlisting}[language=Matlab]
+    function f = multiobj(x)
+      f(1) = x(1)^4-10*x(1)^2+x(1)*x(2)+x(2)^4-(x(1)^2)*(x(2)^2);
+      f(2) = x(2)^4-(x(1)^2)*(x(2)^2)+x(1)^4+x(1)*x(2);
+    end
+    fitnessfcn = @multiobj
+    nvars = 2;
+    lb = [-5,-5];
+    ub = [5,5];
+    A=[]; b=[];
+    Aeq=[]; beq=[];
+    options = gaoptimset('ParetoFraction',0.3,'PopulationSiza',100,'Generations',200,'StallGenLimit',200,'TolFun',le-100,'PlotFcns',@gaplotpareto);
+    [x, fval] = gamultiobj(fitnessfcn,nvars,A,b,Aeq,beq,lb,ub,options);
+    \end{lstlisting}
+    \par
+    在上面的程序中，我们将IENSGA(\rom{2})算法设置为：最优前端个体系数ParetoFraction为0.3，种群大小PopulationSiza为100，进化代数Generations为200，停止代数StallGenLimit为200，适应度函数值偏差TolFun为le-100，绘制Pareto前端。
+

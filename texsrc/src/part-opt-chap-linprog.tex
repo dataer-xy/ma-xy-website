@@ -1,0 +1,492 @@
+% % \part{优化模型}
+% % \chapter{线性规划和整数规划}
+
+\chapter{线性规划}
+
+\section{问题的引入与分析}
+    \par
+    前面，我们讨论的都是非线性规划，无约束非线性规划和约束非线性规划，下面，我们讨论两种特殊情况：1.线性规划2.二次规划。线性规划要求目标函数和约束条件皆为线性函数。二次规划则要求目标函数为二次函数。我们先来讨论线性规划。
+    \par
+    示例：设某工厂用4种资源生产3种产品，单位$j$产品需要$i$资源的数量为$a_{ij}$，可获利$c_j$。并要求第$i$种资源总消耗不超过$b_i$，第$j$种产品产量不超过$d_j$，问如何安排生产使总利润最大？
+    \par
+    解：设3种产品的产量分别为$x_1,x_2,x_3$，则
+    \begin{align*}
+    &{\max}\ \mathop{\sum}\limits_{j=1}^3c_jx_j\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop{\sum}\limits_{j=1}^3a_{ij}x_j \leqslant b_i\quad i=1,2,3,4\\
+    &x_j \leqslant d_j\\
+    &x_j \geqslant 0\\
+    &j=1,2,3
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    线性规划的目标函数$f$是线性的，约束函数是线性的，约束有等式和不等式两种。Optimization Toolbox采用下列3种方法求解线性规划：
+    \par
+    \ding{172}单纯形算法，也是最常用的算法；
+    \par
+    \ding{173}内点算法：基于原始预估校正算法，尤其适用于稀疏结构或其它特殊结构的大规模问题；
+    \par
+    \ding{174}动态序列算法。
+\section{模型规范化及基本理论}
+    \par
+    线性规划的一般形式为
+    \begin{align*}
+    & \mathop{\min}\limits_{x\in R^n}\ f(x)=c^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax \leqslant b\\
+    &x \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$x=(x_1,x_2,\ldots,x_n)^\mathrm{T}\in R^n $，$f=c^\mathrm{T} x:R^n \to R$为线性函数。$A \in R^{m\times n}$，$b \in R^m$，$c \in R^n$。
+    \par
+    设解的可行域为$D=\{x|Ax \leqslant b\ \& \ x \geqslant 0\}$，最优解记为$x^*$，上面的线性规划问题也可以写成分量形式
+    \begin{align*}
+    & \min \  \mathop{\sum}\limits_{j=1}^nc_jx_j\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop{\sum}\limits_{j=1}^na_{ij}x_j\leqslant b_i \quad i=1,2,\ldots,m\\
+    &x_j \geqslant 0\quad j=1,2,\ldots,n
+    \end{aligned}
+    \right.
+    \end{align*}
+    设$E=\{1,2,\ldots,m\}$为指标集，$J=\{1,2,\dots,n\}$。
+    \par
+    我们可以将上面的线性规划(LP)一般形式化为标准形，标准形的定义如下
+    \begin{align*}
+    & \mathop{\min}\  c^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax = b\\
+    &x \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$A \in R^{m\times n},b\in R^m$，$c,x \in R^n$。记可行域为$S$
+    \begin{align*}
+    S=\{x|x\in R^n|Ax=b,x \geqslant 0\}
+    \end{align*}
+    \par
+    下面，我们将线性规划一般形式转化为标准形式：\\
+    1)不等式转化为等式：\par
+    对于$\mathop {\sum}\limits_{j=1}^n a_{ij}x_j \leqslant b_i$，增加一个松弛变量
+    \begin{align*}
+    b_i - \mathop {\sum}\limits_{j=1}^n a_{ij}x_j + r_i\geqslant 0
+    \end{align*}
+    \par
+    对于$\sum\limits_{j=1}^n a_{ij}x_j \geqslant b_i$，增加一个剩余变量
+    \begin{align*}
+    \sum_{j=1}^n a_{ij}x_j - b_i+s_i \geqslant 0
+    \end{align*}
+    2)受限与非受限变量转化为非负变量：\par
+    对于$x_j \geqslant l_j$，进行平移变换：${\bar{x}}_j = x_j-l_j \geqslant 0$；\par
+    对于$x_j \leqslant u_j$，进行反射变换与平移变换：$x_j=u_j-{\bar{x}}_j \geqslant 0$；\par
+    对于自变量$x_j \in R$，将它分解成非负变量之差：$x_j={\bar{x}}_j-{\hat{x}}_j$，其中，${\bar{x}}_j \geqslant 0,{\hat{x}}_j \geqslant 0$。\\
+    3)极大化转化为极小化目标。\par
+    由可行域$S$的定义可知，$S$是一个凸集，事实上，$S$是一个多面体区域。
+    % $S$无界的充要条件是它有方向$d \in R^n$是线性规划。可行域$S$的一个方向的充要条件是
+    % \begin{align*}
+    % d \geqslant 0 \ \& \ Ad=0
+    % \end{align*}
+    % \par
+    设可行域$S$的极点为$x^{i}(i \in E)$，极方向为$d^{j}(j \in J)$，那么对于任意的点$x \in S$，有
+    \begin{align*}
+    \left\{
+    \begin{aligned}
+    &x=\mathop{\sum}\limits_{i\in E}{\lambda}_ix^i+\mathop{\sum}\limits_{j\in J}{\mu}_jd^j\\
+    &\mathop{\sum}\limits_{i\in E}{\lambda}_i=1\\
+    &{\lambda}_i \geqslant 0\\
+    &{\mu}_j \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    把$x$代入原问题，得到以${\lambda}_i,{\mu}_j$为变量的等价的线性规划
+    \begin{align*}
+    &\min\  \mathop {\sum}\limits_{i\in E}(c^\mathrm{T} x^i){\lambda}_i+\mathop{\sum}\limits_{j\in J}(c^\mathrm{T} d^j){\mu}_j\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop{\sum}\limits_{i\in E}{\lambda}_i=1\\
+    &{\lambda}_i \geqslant 0\\
+    &{\mu}_j \geqslant 0\\
+    &i \in E\\
+    &j \in J
+    \end{aligned}
+    \right.
+    \end{align*}
+    由于${\mu}_j \geqslant 0$可以任意大。因此，若对于某个$j$有$c^\mathrm{T} d^j<0$，则$(c^\mathrm{T} d^j){\mu}_j$随着${\mu}_j$的增大而无限减小，从而目标函数值趋向$-\infty$，称该问题无界或不存在有限最优值。如果对于所有的$j\in J$，有$c^\mathrm{T}d^j \geqslant 0$，则相对于最小化目标来说，令$\mu_j = 0(j\in J)$，于是，线性规划的标准形式转化为
+    \begin{align}
+    \label{eq:线性规划的标准形式}
+    \min\ \mathop {\sum}\limits_{i\in E}(c^\mathrm{T} x^i){\lambda}_i\\
+    s.t.\left\{
+    \begin{aligned}
+    &\mathop{\sum}\limits_{i\in E}{\lambda}_i=1\\\notag
+    &{\lambda}_i \geqslant 0\\\notag
+    &i \in E\notag
+    \end{aligned}
+    \right.
+    \end{align}
+    \par
+    在上述问题中，令
+    \begin{align*}
+    c^\mathrm{T} x^p=\mathop{\min}\limits_{i}\ c^\mathrm{T} x^i
+    \end{align*}
+    显然，当${\lambda}_p=1$并且${\lambda}_i=0(i \neq p)$时，目标函数值最小，所以(\ref{eq:线性规划的标准形式})式必然有最优解。
+    \paragraph{线性规划的基本定理}
+    假设线性规划标准形式的可行域$S\neq \phi$，则有\par
+    (1)标准形存在有限最优解，当且仅当，对于$S$的任意极方向$d^j(j \in J)$，有
+    \begin{align*}
+    e^\mathrm{T} d^j \geqslant 0
+    \end{align*}
+    \par
+    (2)若标准形存在有限最优解，则其最优值可以在$S$的某个极点上取到。
+\section{线性规划的最优化条件}
+    \par
+    最优化条件 - KKT条件。对于一般形式的线性规划而言，$x^* \in R^n$是其最优解，当且仅当存在向量$w \in R^m,r \in R^n$使得
+    \begin{align}
+    \label{eq:线性规划的最优化条件1}
+    &Ax^* \geqslant b,x^* \geqslant 0 \notag \\
+    &c-A^\mathrm{T} w-r = 0,w \geqslant 0,r \geqslant 0
+    \end{align}
+    和
+    \begin{align}
+    \label{eq:线性规划的最优化条件2}
+    w^\mathrm{T} (Ax^*-b) = 0,r^\mathrm{T} x^*=0
+    \end{align}
+    \par
+    对于标准形式的线性规划而言，$x^* \in R^n$是其最优解，当且仅当存在向量$w \in R^m,r \in R^n$，使得
+    \begin{align*}
+    &Ax^* = b \quad x^* \geqslant 0 \\
+    &A^\mathrm{T} w+r =c \quad r \geqslant 0 \\
+    &r^\mathrm{T} x^*=0
+    \end{align*}
+    最优性条件将求解线性规划的问题转化为求解代数方程组(不等式组)的问题，后者有$n+m+1$个变量和$n+m+1$个方程。
+\section{对偶理论}
+    \par
+    在线性规划的KKT条件中，条件方程(\ref{eq:线性规划的最优化条件1})(\ref{eq:线性规划的最优化条件2})分别等价于下面的不等式组和方程组
+    \begin{align*}
+    &A^\mathrm{T} w \leqslant c \quad w \geqslant 0 \\
+    &b^\mathrm{T} w - (w^\mathrm{T} A)x^*=0 \quad c^\mathrm{T} x^*- w^\mathrm{T} (Ax^*)=0
+    \end{align*}
+    于是，我们可以写出如下形式的对偶规划
+    \begin{align*}
+    & \mathop {\max}\  b^\mathrm{T} w\\
+    & s.t.\left\{
+    \begin{aligned}
+    & A^\mathrm{T} w \leqslant c\\
+    & w \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    我们称上述规划为原线性规划的对偶形式(DLP)。
+    \paragraph{弱对偶定理}
+    (1)设原线性规划的可行域为$S$，对偶规划的可行域为$T$，若$S \neq \phi,T \neq \phi$，则$\forall  x \in S,w \in T$，有$c^\mathrm{T} x \geqslant b^\mathrm{T} w$。
+    (2)若$\exists x^* \in S,w^* \in T$，使得$c^\mathrm{T} x^*=b^\mathrm{T} w^*$，则$x^*,w^*$分别为PLP和DLP的最优解。
+    (3)若PLP无下界，则其对偶DLP是不相容的(即$T=\phi$)，反之，若DLP无上界，则PLP是不相容的(即$S=\phi$)。
+    \paragraph{强对偶定理}
+    (1)若PLP和DLP中任何一个问题存在有限的最优解，则另一个问题也存在有限的最优解，并且它们的目标函数最优值相等。
+    (2)对于PLP或DLP问题，若目标函数值无界，则另一个问题是不相容的(无可行解)。
+\section{最优化算法}
+    \subsection{内点算法}
+        \par
+        考虑标准形式的线性规划问题
+        \begin{align}
+        \label{eq:标准形式的线性规划问题}
+        & \mathop {\min}\  b^\mathrm{T} y\\
+        & s.t.\left\{
+        \begin{aligned}
+        & A^\mathrm{T} y = c\\\notag
+        & y \geqslant 0\notag
+        \end{aligned}
+        \right.
+        \end{align}
+        其中：$A \in R^{m\times n},b,y \in R^m,c \in R^n$。
+        上述问题的对偶问题为
+        \begin{align}
+        \label{eq:对偶问题的线性规划问题}
+        & \mathop {\max}\  c^\mathrm{T} x\\
+        & s.t.\quad Ax \leqslant b\notag
+        \end{align}
+        其中：$c,x \in R^n , A \in R^{m\times n},m \geqslant n$。
+        \par
+        \underline{先假设存在内点$x_0$}，并假设问题是有界的。内点法的基本思想是：从内点$x_0$出发，沿可行方向求出使目标函数值上升的后继点，再从得到的内点出发，沿另一个可行方向求使目标函数值上升的内点，重复以上步骤，产生一个内点组成的序列$\{x_k\}$，使得
+        \begin{align*}
+        &c^\mathrm{T} x_{k+1} > c^\mathrm{T} x_k=0
+        \end{align*}
+        当满足终止准则时，则停止迭代。这种方法的关键是选择使得目标函数值上升的可行方向。
+        \par
+        首先，引进松弛变量$v$，将模型(\ref{eq:对偶问题的线性规划问题})写为标准型
+        \begin{align*}
+        &\mathop {\max}\  c^\mathrm{T} x\\
+        &s.t.\left\{
+        \begin{aligned}
+        & Ax + v = b \\
+        & v \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        在第$k$次迭代，定义$v_k$为非负松弛变量构成的$m$维向量，使得
+        \begin{align*}
+        v_k = b - Ax_k
+        \end{align*}
+        再定义对角矩阵
+        \begin{align*}
+         D_k = diag \left( \frac{1}{v_1^k},\cdots,\frac{1}{v_m^k} \right)
+        \end{align*}
+        作仿射变换，令
+        \begin{align*}
+         w = D_kv
+        \end{align*}
+        把线性规划(\ref{eq:对偶问题的线性规划问题})改写为
+        \begin{align*}
+        &\mathop {\max}\  c^\mathrm{T} x\\
+        &s.t.\left\{
+        \begin{aligned}
+        & Ax+D_k^{-1}w = b\\
+        & w \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        在变换空间中，选择搜索方向
+        \begin{align*}
+         d = \begin{bmatrix}d_x\\d_w\end{bmatrix}
+        \end{align*}
+        显然，$d$作为可行方向，它必是下列齐次方程的一个解
+        \begin{align}
+        \label{eq:其次方程的一个解}
+         D_kAd_x+d_w=0
+        \end{align}
+        对于上式的任一解，有
+        \begin{align*}
+         A^\mathrm{T} D_k(D_kAd_x+d_w)=0
+        \end{align*}
+        由此得到
+        \begin{align*}
+         d_x=-(A^\mathrm{T} D_k^2A)^{-1}A^{T}D_kd_w
+        \end{align*}
+        每次迭代中，目标函数在$d_x$方向的方向导数是
+        \begin{align*}
+         c^\mathrm{T} d_x
+        \end{align*}
+        将$d_x$代入上式，则有
+        \begin{align*}
+         c^\mathrm{T} d_x=c^\mathrm{T} [-(A^\mathrm{T} D_k^2A)^{-1}A^{T}D_kd_w]=-[D_kA(A^\mathrm{T} D_k^2A)^{-1}c]^\mathrm{T} d_w
+        \end{align*}
+        选择$d_w$，使$c^\mathrm{T} d_x$最大，则
+        \begin{align*}
+         d_w=-D_kA(A^\mathrm{T} D_k^2A)^{-1}c
+        \end{align*}
+        由上式确定$d_w$后，可以得到式(\ref{eq:其次方程的一个解})中的一个解，其中
+        \begin{align*}
+         d_x=(A^\mathrm{T} D_k^2A)^{-1}c
+        \end{align*}
+        同时，对$d_w$作逆仿射变换，可得到
+        \begin{align*}
+         d_v=D_k^{-1}d_w=-A(A^\mathrm{T} D_k^2A)^{-1}c=-Ad_x
+        \end{align*}
+        搜索方向确定后，还需确定沿此方向移动的步长。设后继点
+        \begin{align*}
+         x_{k+1}=x_k+\alpha d_x
+        \end{align*}
+        步长$\alpha$在保证$x_{k+1}$为可行域的内点情况下取值，即满足
+        \begin{align*}
+        &A(x_k+\alpha d_x) < b\\
+        &{\alpha}Ad_x < b-Ax_k\\
+        &-\alpha d_v < v_k
+        \end{align*}
+        \par
+        令
+        \begin{align*}
+        \beta = {\min}\bigg \{\frac{v_i^{(k)}}{-(d_v)_i}\bigg |(d_v)_i < 0,i \in\{1,2,\ldots,m\}\bigg\}
+        \end{align*}
+        取$\alpha=\gamma\beta$，其中$\gamma \in (0,1)$，这样即可得到$x_{k+1}$。下面给出内点法的计算步骤：\\
+        \textbf{step1.}初始化。
+        $x_0 \in R^n$，$\gamma \in (0,1)$，容许误差$\varepsilon > 0$，置$k:=0$\\
+        \textbf{step2.}计算$v_k$
+        \begin{align*}
+        v_k=b-Ax_k
+        \end{align*}
+        \textbf{step3.}置对角矩阵\\
+        \begin{align*}
+        D_k = diag \left( \frac{1}{v_1^k},\cdots,\frac{1}{v_m^k} \right)
+        \end{align*}
+        \textbf{step4.}计算$d_x=(A^\mathrm{T} D_k^2A)^{-1}c$\\
+        \textbf{step5.}令$d_v=-Ad_x$\\
+        \textbf{step6.}令
+        \begin{align*}
+        \alpha = \gamma\ {\min}\bigg \{\frac{v_i^{(k)}}{-(d_v)_i}\bigg |(d_v)_i < 0,i \in\{1,2,\ldots,m\}\bigg\}
+        \end{align*}
+        \textbf{step7.}置$x_{k+1}=x_k+\alpha d_x$\\
+        \textbf{step8.}若$\frac{|c^\mathrm{T} x_{k+1}-c^\mathrm{T} x_k|}{c^\mathrm{T} x_k} < \varepsilon$则停止，输出$x_{k+1}$；否则，置$k:=k+1$，返回step2。
+        \par
+        前面，我们假设存在内点$x_0$。这里，我们可以如此求初始内点：
+        首先，从原点出发，沿目标函数的梯度方向$c$取一点，令
+        \begin{align*}
+        x_0 = \left( \frac{\|b\|}{\|A^c\|} \right) _c
+        \end{align*}
+        如果$v_0=b-Ax_0>0$，则$x_0$为初始内点，否则，解下列一阶线性规划问题
+        \begin{align*}
+        & \mathop{\max}\  c^\mathrm{T} x-Mx_a\\
+        &s.t.\quad Ax-x_ae \leqslant b
+        \end{align*}
+        其中：$M$是大的正数，$e$为$1\times m$的单位列向量，$x_a$为人工变量，根据$v$的定义，如果令
+        \begin{align*}
+        x_a^{(0)} > \left| {\min} \left\{{v_i^{(0)}}\big|i = 1,2,\ldots,m\right\}\right|
+        \end{align*}
+        则有
+        \begin{align*}
+        Ax_0- x_a^{(0)}e < b
+        \end{align*}
+        因此，$(x_0,x_a^{0})$必为内点。
+    \subsection{路径跟踪法}
+        \par
+        考虑线性规划原问题(PLP)
+        \begin{align*}
+        & \mathop{\min}\ c^\mathrm{T} x\\
+        &s.t.\left\{
+        \begin{aligned}
+        &Ax = b\\
+        &x \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其对偶形式(DLP)为
+        \begin{align*}
+        &\mathop {\max}\  b^\mathrm{T} y\\
+        &s.t.\left\{
+        \begin{aligned}
+        & A^\mathrm{T} y+w = c\\
+        & w \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$c,x \in R^n$，$b,y \in R^m$，$A \in R^{m \times n}$，$Rank(A)= m$。记可行域分别为$S,T$
+        \begin{align*}
+        &S=\{x|Ax=b,x \geqslant 0\}\\
+        &T=\left\{\begin{pmatrix}
+        y\\w
+        \end{pmatrix}\bigg|A^\mathrm{T} y+w=c,w \geqslant 0\right\}
+        \end{align*}
+        可行域内部记为$S^\mathrm{T} ,T^\mathrm{T} $
+        \begin{align*}
+        &S^\mathrm{T} =\{x|Ax=b,x>0\}\\
+        &T^\mathrm{T} =\left\{\begin{pmatrix}
+        y\\w
+        \end{pmatrix}\bigg|A^\mathrm{T} y+w=c,w > 0\right\}
+        \end{align*}
+        $x,y,w$为最优解的充分必要条件是
+        \begin{align*}
+        \left\{
+        \begin{aligned}
+        & Ax = b \quad x \geqslant 0\\
+        & A^\mathrm{T} y+w=c \quad w \geqslant 0\\
+        & XWe = 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$X=diag(x_1,x_2,\ldots,x_n)$，$W=diag(w_1,w_2,\ldots,w_n)$，上述条件为KKT条件。
+        \par
+        现在，将$XWe=0$换作$XWe=\mu e$，$e$为$n \times 1$的全1列向量，实参数$\mu > 0$，得到松弛KKT条件
+        \begin{align*}
+        &Ax=b \quad x\geqslant 0\\
+        &A^\mathrm{T} y+w=c \quad w \geqslant 0\\
+        &XWe = \mu e
+        \end{align*}
+        \par
+        如果$S$有界且$S^\mathrm{T}  \neq \phi$，则对每一个$\mu $，松弛KKT条件\underline{存在唯一内点解。}
+        \begin{definition}[原始 - 对偶中心路径]
+        原始 - 对偶可行解$D=\{(x,y,w)|Ax=b,A^\mathrm{T} y+w=c,(w,x) \geqslant 0\}$和可行集内部$D^+$，若$D^+ \neq \phi$，则对每一个$\mu > 0$，上述系统存在唯一解$\left(x(\mu),y(\mu),w(\mu)\right)$，把$\{x(\mu),y(\mu),w(\mu)|\mu > 0\}$称为原始 - 对偶中心路径，记为$C_{\mu}$。
+        \end{definition}
+        \par
+        在中心路径$C_{\mu}$上，当$\mu$很小时，原问题的目标值单调减小且趋于最优值。对偶问题目标值单调增加且趋于最优值。对于每一个中心路径参数$\mu$，对偶间隙$c^\mathrm{T} x(\mu)-b^\mathrm{T} y(\mu)=n\mu$。
+        \par
+        关于参数$\mu$的确定：如果点$(x,y,w)$在中心路径$C_{\mu}$上，显然有
+        \begin{align*}
+        \mu = \frac{x^\mathrm{T} w}{n}
+        \end{align*}
+        如果点$(x,y,w)$不在中心路径$C_{\mu}$上，我们仍用上述方法确定。
+        下面介绍如何确定转移方向$d_k$。
+        \par
+        当$\mu \to 0$时，原始问题和对偶问题均趋于最优值。我们通过迭代，大致沿着$C_{\mu}$去逼近最优解。任取一点$(x,y,w)$，其中，$x>0,w>0$。此时，目标是求一个方向$(\nabla x,\nabla y,\nabla w)$使迭代点$(x+\nabla x,y+\nabla y,w+\nabla w)$位于$C_{\mu}$上，即
+        \begin{align*}
+        &A(x+\Delta x)=b \\
+        &A^\mathrm{T} (y+\Delta y)+(w+\Delta w)=c \\
+        &(X+\Delta x)(W+\Delta w)e = \mu e
+        \end{align*}
+        整理后，有
+        \begin{align*}
+        &A\Delta x=b-Ax \\
+        &A^\mathrm{T} \Delta y+\Delta w=c-A^\mathrm{T} y- A^\mathrm{T} w\\
+        &W\Delta x+X\Delta w+\Delta x \Delta w e = \mu e-XWe
+        \end{align*}
+        记作$b-Ax=\rho$，$c-A^\mathrm{T} y-w=\sigma$，忽略二次项$\Delta x \Delta w$，用矩阵形式表示，则有
+        \begin{align*}
+        \begin{bmatrix} A & 0 & 0\\
+        0 & A^{\mathrm{T}} & I\\ W & 0 & X \end{bmatrix}\begin{bmatrix}\Delta x\\\Delta y\\\Delta w \end{bmatrix}=\begin{bmatrix}\rho \\ \sigma \\\mu e-XWe \end{bmatrix}
+        \end{align*}
+        \par
+        解上述方程，可求出移动方向$[\Delta x,\Delta y,\Delta w]^\mathrm{T} $。在求出转移方向之后，需要确定此方向移动的步长$\alpha$，$\alpha$取值应满足
+        \begin{align}
+        \label{eq:移动步长的取值要求}
+        &x+\alpha \Delta x > 0 \\
+        &w+\alpha \Delta w > 0 \notag
+        \end{align}
+        由于$x_j>0,w_j>0,\alpha >0$，因此
+        \begin{align*}
+        \frac{1}{\alpha}=\mathop {\max}\limits_{i,j}\left\{ -\frac{\Delta x_j}{x_j},-\frac{\Delta w_i}{w_i}\right\}
+        \end{align*}
+        为保证(\ref{eq:移动步长的取值要求})式为严格不等式，引进小于且接近$T$的正数$\rho$，令
+        \begin{align*}
+        {\alpha}=\mathop {\min}\left\{\rho\left[ \mathop {\max}\limits_{i,j} \left( -\frac{\Delta x_j}{x_j},-\frac{\Delta w_i}{w_i} \right)\right]^{-1},1\right\}
+        \end{align*}
+        \par
+        算法流程：\\
+        \textbf{step1.}初始化。
+        初始点$(x,y,w)$，$x_1>0,w_1>0$，$\rho \to 1$，容许误差$\varepsilon > 0$，正数$M < \infty$，置$k:=1$，$\delta = \frac {1} {10}$\\
+        \textbf{step2.}计算$\rho=b-Ax_k,\sigma=c-A^\mathrm{T} y_k-w_k,r=x_k^\mathrm{T} w_k,\mu=\delta \frac \gamma n$。\\
+        \textbf{step3.}若$\|\rho\|_1<{\varepsilon \ \& \  \|\sigma}\|_1<\varepsilon\ \&\  r<\varepsilon$则停止迭代，输出解；若$\|x_k\|>M$或者$\|y_k\|>M$则停止迭代，原问题或对偶问题无界，否则，转到step4。\\
+        \textbf{step4.}解方程
+        \begin{align*}
+        \begin{bmatrix} A & 0 & 0\\
+        0 & A^\mathrm{T} & I\\ W & 0 & X \end{bmatrix}\begin{bmatrix}\Delta x\\\Delta y\\\Delta w \end{bmatrix}=\begin{bmatrix}\rho \\ \sigma \\\mu e-XWe\end{bmatrix}
+        \end{align*}
+        得到$(\Delta x_k,\Delta y_k,\Delta w_k)$，置$\alpha$。\\
+        \textbf{step5.}计算$x_{k+1}$
+        \begin{align*}
+        &x_{k+1}=x_k+{\alpha}\Delta x_k \\
+        &y_{k+1}=y_k+{\alpha}\Delta y_k\\
+        &w_{k+1} =w_k+{\alpha}\Delta w_k
+        \end{align*}
+        置$k:=k+1$，转到step2。
+\section{MATLAB应用实例}
+    \par
+    MATLAB中用linprog求解线性规划，其调用格式为
+    \par
+    [x,fval,exitflag,output]=linprog(fun,A,b,Aeq,beq,lb,ub,x0,options)\\
+    其中：fun为目标函数；x0为初始点；A,b为$Ax \leqslant b$；Aeq,beq为线性等式约束$Aeq{}x < beq$；lb,ub为$lb \leqslant x \leqslant ub$；nonlcon为非线性约束条件；options为结构体参数。
+    \par
+    用linprog求解如下线性规划问题
+    \begin{align*}
+    &\mathop {\min} f=-4x_1-x_2\\
+    &s.t.\left\{
+    \begin{aligned}
+    &-x_1+2x_2 \leqslant 4\\
+    &2x_1+3x_2 \leqslant 12\\
+    &x_1-x_2 \leqslant 3\\
+    &x_1x_2 \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    \begin{lstlisting}[language=Matlab]
+    f=[-4;-1];
+    x0=[0,0];
+    A=[-1,2;2,3;1,-1];
+    b=[4;12;3];
+    Aeq=[];
+    beq=[];
+    lb=[];
+    ub=[];
+    [x,fval,exitflag,output,lambda]=linprog(f,A,b,Aeq,beq,lb,ub,x0)
+    \end{lstlisting}

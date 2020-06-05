@@ -1,0 +1,182 @@
+﻿%% ----------------------------------------------------------------------------
+%% Book Parameters - Included in body and cover
+%% ----------------------------------------------------------------------------
+\usepackage{tikz}% Plotting and formatting
+\usepackage{pgf}% Fancy math
+\usepackage{xifthen}% add ifthenelse and condtionals
+
+%\def\uselayouts{}% Enable to display page layout info at end of document.
+
+% At 215 pages, the spine is wide enough to hold a publishers logo
+% and a nice sized title. At 315 pages the spine can hold a subtitle.
+% The logo is not available below 215 pages, and below 150 pages the
+% title size is very reduced. A blank spine is used when the book has
+% fewer than 123 pages.
+%
+% Note that some printers require specific page count multiples:
+% -- Createspace: page count MUST be divisible by 2.
+% -- Ingram: page count MUST be divisible by 2.
+% -- Blurb : page count MUST be divisible by 6.
+% Add blank pages as needed in final PDF generations!
+\pgfmathsetmacro\TotalPageCount{315}% Must be manually entered
+\pgfmathsetmacro\PaperWidthPt{185mm}%
+\pgfmathsetmacro\PaperHeightPt{260mm}%
+
+%\def\ShowCoverStatistics{}% Enable to show some numbers on back cover.
+
+\def\TheMainTitle{模型与算法基础}
+\def\TheSubTitle{Hey! Why Not Read This One?}
+\def\TheSubTitleA{Hey!}
+\def\TheSubTitleB{Why Not Read This One?}
+\def\TheBookSeries{Just read! Just do it! }
+
+\def\TheAuthor{宋焱燚\ 计萍}
+\def\TheAuthors{杨桂元\ 宋云超\ 编著}
+\def\TheAuthorA{宋焱燚}
+\def\TheAuthorB{计萍}
+\def\TheAuthorLNF{宋焱燚, 计萍}
+
+\def\TheCopyrightYear{2017}
+\def\TheEdition{First Edition}
+% 出版社设置
+\def\ThePublisherName{Your Press}% 出版社名称 Just the short form name
+\def\ThePublisherLineA{Your}% Just one part of the name
+\def\ThePublisherLineB{Press}% Just one part of the name
+\def\ThePublisher{\ThePublisherName}% Add Ltd, Inc, LLC etc here
+\def\ThePublisherAddrA{1234 Xyzzy Plugh Ln}
+\def\ThePublisherAddrB{North Wyodaka, QM 45678}
+\def\ThePublisherCity{Wyodaka}
+\def\ThePublisherState{QM}
+
+\def\ThePrinter{CreateSpace, An Amazon.com Company}% 打印
+
+\def\TheSubjectArea{Yada, Yada, Yada}
+
+\def\TheKeywords{Yadas, Books, Odd, Wierd}
+
+%% ----------------------------------------------------------------------------
+% NOTE Each version of a book usually requires its own ISBN. You can
+% obtain blocks of 10 ISBNs for $250 from https://www.myidentifiers.com/
+% You must know you Imprint Name (publisher).
+% Dashes MUST be placed in the correct postions in the ISBNs.
+\def\PrintISBN{978-4-4444444-4-6}%
+\def\PrintISBNShort{4-4444444-4-9}%
+%\def\HardcoverISBN{978-4-4444444-4-6}%
+%\def\HardcoverISBNShort{4-4444444-4-9}%
+\def\EbookISBN{978-5-5555555-5-7}%
+\def\EbookISBNShort{5-5555555-5-9}%
+
+%% ----------------------------------------------------------------------------
+% The ISBN barcode is created with the GhostScript barcode.ps generator:
+% see Terry Burton's PostScript % based barcode generator, at:
+%       https://github.com/bwipp/postscriptbarcode.
+% Use 99.99 if your price exceeds $100 (good luck selling that puppy).
+% Comment out these entries if you don't want a price in the barcode.
+\def\PrintPrice{9.95}% 价格
+%\def\HardcoverPrice{19.95}% Price in dollars and cents for barcode.
+
+%% ----------------------------------------------------------------------------
+% NOTE that P-CIP (Publisher's Catalog in Publication) data block must be
+% aquired from http://www.quality-books.com/pcip.htm. This is placed on the
+% copyright page, and is required by all libraries and many booksellers.
+% The P-CIP costs $100 and cannot be obtained until much of a first draft
+% is available as an ASCII text file.
+%
+% Only US Publishers (not independent or self), can obtain an LC-CIP
+% (Library of Congress Catalog in Publication) data block directly from
+% the Library of Congress.
+\def\TheCIPType{Publisher's Cataloging-in-Publication Data}
+%\def\TheCIPType{Library of Congress Cataloging-in-Publication Data}
+
+% Library of Congress Catalog Subject Headings
+\def\TheCIPSubjectHeadings{1. Get from QualityBooks}
+
+% Dewey Decimal System classification number
+\def\TheDDSN{333.33-dc33}
+
+% LCCN: Library of Congress classification number (not a Control Number or PCN)
+\def\TheLCCN{QP333.K33 2017}
+
+%% ----------------------------------------------------------------------------
+% The PCN (also called an LCCN) are acquired from the Library of Congress.
+% This is done by contacting: http://www.loc.gov/publish/pcn/newaccount.html
+% after you have purchased an ISBN (13 digit) from Bowker, preferably for both
+% your print and eBook versions.
+
+% PCN: Library of Congress’ Preassigned Control Number (PCN)
+% Also called : Library of Congress Control Number
+% Also called : Library of Congress Card Number
+%
+% This takes about a day to get assigned and is free.
+\def\TheLCPCN{2017xxxxxx}
+
+%% ----------------------------------------------------------------------------
+\def\TheCopyrightKeywords{1. History; 2. Nonsense; 3. Made up stuff}
+
+\def\ShortDescription{% Normally restricted to 300 t0 350 characters depending on publisher.
+\textsf{\textbf{World War II and the Manhattan Project} -- a group of Hungarian scientists that included émigré physicist Leó Szilárd attempted to alert Washington.}}
+
+\def\BackDescription{% Typically max 2000-4000 characters
+\textsf{\textbf{World War II and the Manhattan Project} -- a group of Hungarian scientists that included émigré physicist Leó Szilárd attempted to alert Washington to ongoing Nazi atomic bomb research. instein and Szilárd, along with other refugees such as Edward Teller and Eugene Wigner, ``regarded it as their responsibility to alert Americans to the possibility that German scientists might win the race to build an atomic bomb, and to warn that Hitler would be more than willing to resort to such a weapon.'' To make certain the U.S. was aware of the danger, in July 1939, a few months before the beginning of World War II in Europe, Szilárd and Wigner visited Einstein to explain the possibility of atomic bombs, which Einstein, a pacifist, said he had never considered.}}
+
+\def\AuthorBio{% 作者简介
+\textsf{\textbf{Wilson J. Schmeggles} was a German-born theoretical physicist. He developed the general theory of relativity, one of the two pillars of modern physics (alongside quantum mechanics). His work is also known for its influence on the philosophy of science. He is best known in popular culture for his rubber–ducky equivalence formula.}}
+
+%% ----------------------------------------------------------------------------
+%% Computed parameters for cover and jacket design
+
+% CreateSpace and Ingram, use different paper stock so the spine width must
+% be adjusted to refect that.
+% For example Createspace, White paper: multiply page count by 0.002252
+%
+\pgfmathsetmacro\SinglePageThicknessPt{0.002252in}% Createspace, White B&W Paper
+%\pgfmathsetmacro\SinglePageThicknessPt{0.002143in}% Blurb, Standard and Econony B&W Paper
+%\pgfmathsetmacro\SinglePageThicknessPt{0.002602in}% Blurb, Standard and Economy Color Paper
+%\pgfmathsetmacro\SinglePageThicknessPt{0.002110in}% Ingram, Standard White B&W Paper (50lb)
+%\pgfmathsetmacro\SinglePageThicknessPt{0.002110in}% Ingram, Standard Color Paper (50lb)
+%\pgfmathsetmacro\SinglePageThicknessPt{0.002720in}% Ingram, Premium Color Paper (70lb)
+
+\pgfmathsetmacro\HorBleedPt{0.125in}%
+\pgfmathsetmacro\VerBleedPt{0.125in}%
+\pgfmathsetmacro\FoldVariancePt{0.0625in}%
+
+%% Every book will vary slightly when bound. Allow for 0.0625" variance on either
+%% side of the fold lines for your cover. For example, if your spine width is 1",
+%% your text should be no wider than 0.875". Because of this variance, avoid hard
+%% edges or lines that end on the fold line.
+
+%% Cover Width calculation at 6" x 9" cover with 60 B&W pages on white paper:
+%%    0.125" + 6" + (60 * 0.002252)" + 6" + .125" = 12.385"
+%% Cover Height calculation: 6" x 9": 0.125" + 9" + .125" = 9.25"
+
+\pgfmathsetmacro\SpineWidthPt{\SinglePageThicknessPt*\TotalPageCount}%
+\pgfmathsetmacro\CoverWidthPt{\PaperWidthPt+\HorBleedPt}%
+\pgfmathsetmacro\JacketWidthPt{\CoverWidthPt+\SpineWidthPt+\CoverWidthPt}%
+\pgfmathsetmacro\CoverHeightPt{\VerBleedPt+\PaperHeightPt+\VerBleedPt}%
+
+\pgfmathsetmacro\PtsPerInch{72.27}% Slightly more than 72 - odd.
+
+\pgfmathsetmacro\SpineWidth{\SpineWidthPt    / \PtsPerInch}%
+\pgfmathsetmacro\PaperWidth{\PaperWidthPt    / \PtsPerInch}%
+\pgfmathsetmacro\CoverWidth{\CoverWidthPt    / \PtsPerInch}%
+\pgfmathsetmacro\JacketWidth{\JacketWidthPt  / \PtsPerInch}%
+
+\pgfmathsetmacro\PaperHeight{\PaperHeightPt  / \PtsPerInch}%
+\pgfmathsetmacro\CoverHeight{\CoverHeightPt  / \PtsPerInch}%
+
+\pgfmathsetmacro\HorBleed{\HorBleedPt        / \PtsPerInch}%
+\pgfmathsetmacro\VerBleed{\VerBleedPt        / \PtsPerInch}%
+\pgfmathsetmacro\FoldVariance{\FoldVariancePt/ \PtsPerInch}%
+
+%% ----------------------------------------------------------------------------
+\renewcommand{\bf}[1]{\textbf{#1}}% Legacy \bf support.
+
+\newcommand{\SetBool}[2]{%
+  \ifthenelse{\equal{#2}{true}\OR\equal{#2}{on}\OR\equal{#2}{yes}}%
+  {\setboolean{#1}{true}}{\setboolean{#1}{false}}}%
+
+\newcommand{\Boolean}[2]{\newboolean{#1}%
+  \ifthenelse{\isempty{#2}}{}{\SetBool{#1}{#2}}}
+
+%% End of Book Parameters.
+%% ----------------------------------------------------------------------------

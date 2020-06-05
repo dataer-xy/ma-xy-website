@@ -1,0 +1,502 @@
+% % \part{优化模型}
+% % \chapter{多级规划}
+
+\chapter{多级规划}
+\section{问题的引入与分析}
+    \par
+    价格控制问题是一类具有实际背景的二层规划，其模型如下
+    \begin{align*}
+        &{\max}\   a^\mathrm{T} x+b^\mathrm{T} y\\
+        &
+        \begin{aligned}
+        s.t.\quad &x \geqslant 0\\
+        & y\text{为如下问题解}\\
+        & \mathop{\max}\limits_{y}\  x^\mathrm{T} y\\
+        &
+        \begin{aligned}
+         s.t.\quad& Ax+By \leqslant p\\
+        & y \geqslant 0
+        \end{aligned}
+        \end{aligned}
+    \end{align*}
+    其中：$a,x,b,y \in R^n,p \in R^m$，$A,B\in R^{m\times n}$。
+    \par
+    上面模型的意义是：(1)上级决策者决定下级决策者的目标函数$x^\mathrm{T} y$中的价值函数$x$，以优化自己的目标函数$a^\mathrm{T} x+b^\mathrm{T} y$；(2)下级决策者决定变量$y$，在上级决策者决定了价格策略$x$后，优化自己的目标函数$x^\mathrm{T} y$，而上级决策者根据下级作出的反应进一步调查，以使自己的目标$a^\mathrm{T} x+b^\mathrm{T} y$最小。
+\section{模型规范化和基本理论}
+    \subsection{规范化}
+        \par
+        根据上面的价格控制问题，写出多级规划(GMLP)的一般形式
+        \begin{align*}
+            &{\min}\ f_1(x^1,x^2,\cdots,x^l)\\
+            &\begin{aligned}
+            s.t.\quad & x=(x^1,x^2,\cdots,x^l)\in X^1,\text{且}(x^2,x^3,\cdots,x^l)\text{解}\\
+            & {\min}\ f_2(x^1,x^2,\cdots,x^l)\\
+            &\begin{aligned}
+            s.t.\quad & x\in X^2,\text{且}(x^3,x^4,\cdots,x^l)\text{解}\\
+           &\cdots \\
+           &{\min}\  f_l(x^1,x^2,\cdots,x^l)\\
+           &s.t.\quad x \in X^l
+           \end{aligned}
+            \end{aligned}
+        \end{align*}
+        \par
+        当目标函数$f_1,f_2,\cdots,f_l$中含有向量值函数时，相应的问题为多层多目标规划问题。特别地，$l=2$时，上述问题称为二层(双级)规划(bilevel programming)。当$f_1,f_2$为线性函数且$X^1,X^2$为多面体时，GMLP称为线性二层规划。类似于单层规划，根据目标函数$f_1,f_2$为向量值函数或者单值函数，二层规划可分为：上层为单目标而下层为多目标的二层规划；上层为多目标而下层为单目标；或者上下层均为多目标的二层规划模型。
+    \subsection{研究背景与现状}
+        \par
+        1977年Candler在研究奶制品工业模型和墨西哥农业模型的报告中首次提出了多层规划这一术语。其实早在1973年Bracken和Mcqill就提出了二层规划和多层规划的模型，并讨论了此类问题的性质和求解，这种讨论为二层线性规划几何性质的研究和算法设计提供了理论基础。上世纪70年代，德国经济学家StaCkelberg提出了寡头市场模型—StaCkelberg模型\footnote{它是三个经典的寡头市场模型之一}，在该模型中，决策是贯序的，主导产业先走一步，因而占有优势。
+        \par
+        上世纪80年代末，许多学者对多层规划进行了较深入的研究，得到了一些较好的结论。如：当没有上层约束条件时，二层规划问题的可行集是闭连通集，且最优解在约束区域的某个极点达到。并且有文献指出，求解一个线性二层规划问题(包括验证一个局部最优解是否是全局最优解)是一个NP-难问题。利用这些性质，人们提出了许多解线性二次规划问题的算法。
+        % \textcolor[rgb]{1,0,0}{这里有文献，没有加上}
+        \par
+        90年代，二层规划横向、纵向问题的研究也更加深入：下层有多个子问题的二层规划、多层规划、多层混合整数规划，下层以最优值反应上层的二层规划、二层多目标规划及有平衡约束的数学规划等方向都取得了许多成果。
+        \par
+        在国内，多层规划的研究在90年代初才引起关注。较早从事研究的单位有：东南大学、中科院系统所和自动化所、湘潭大学、西南交大、天津大学和西安电子科技大学等。
+        \par
+        但是，目前为止，研究较多的仍为二层规划。多层规划问题本质上的非凸非可微使得其研究较为困难。就二层规划而言，其几何性质比熟知的单层数学规划复杂得多，主要表现在：1、约束的嵌套本性；2、可行集一般不具备凸性和闭性，有上层约束时还可能不连通；3、内在的非光滑性因下层问题含有参数，其最优解以参数为自变量形成的映射一般非$Fr\acute{e}chet$可微，由此导致二层规划的非光滑性质；4、下层问题的多解性加大了二层规划的研究难度5.NP-难的计算复杂性。因而，对多层规划研究大多局限于二层规划。下面，介绍一些不同类型二层规划的求解理论。
+\section{二层单目标线性规划}
+    \par
+    考虑如下的二层线性规划(BLP)
+    \begin{align*}
+       \mathop{\max}\limits_{x}\  & F(x,y)=a^\mathrm{T} x+b^\mathrm{T} y\\
+       &\begin{aligned}
+       s.t.\quad  & y\text{为如下问题解}\\
+       & \mathop{\max}\limits_{y}\  f(x,y)=c^\mathrm{T} x+d^\mathrm{T} y\\
+       &
+       \begin{aligned}
+       s.t.\quad &Ax+By \leqslant r\\
+       &x,y \geqslant 0
+       \end{aligned}
+       \end{aligned}
+    \end{align*}
+    其中：$F(x,y),f(x,y)$分别为BLP的上层和下层目标函数。$x,a,c\in R^{n_1}$，$y,b,d \in R^{n_2}$，$A\in R^{m\times n_1}$，$B\in R^{m\times n_2}$，$r \in R^m$。$x,y$分别是上、下层的决策变量(优化变量)。
+    \par
+    首先，我们给出二层线性规划BLP的一些基本概念：
+    \begin{definition}
+    BLP的约束域为
+    \begin{align*}
+        \Omega=\{(x,y)|Ax+By \leqslant r,x \geqslant 0,y \geqslant 0\}
+    \end{align*}
+    \end{definition}
+    \begin{definition}
+    BLP下层规划问题的约束域为
+    \begin{align*}
+    \Omega=\{y|By \leqslant r-Ax,y \geqslant 0,\forall x \geqslant 0\}
+    \end{align*}
+    \end{definition}
+    \begin{definition}
+    BLP约束域在上层决策中的投影为
+    \begin{align*}
+        S=\{x|\exists y \geqslant 0,s.t. {}Ax+By\leqslant r,x \geqslant 0\}
+    \end{align*}
+    \end{definition}
+    \begin{definition}
+    $\forall x \geqslant 0$，BLP的下层规划问题的合理反应集$M(x)=\{y|y \in \arg\max\{f(x,y),y\in \Omega(x)\}\}$
+    \end{definition}
+    \begin{definition}
+    BLP的诱导域：$IR=\{(x,y)|(x,y)\in \Omega,y \in M(x)\}$
+    \end{definition}
+    \par
+    为了保证优化问题有解，假定$\Omega$和$IR$是非空有界的。从二层线性规划的模型来看，其优化策略应该是：首先，上层对下层宣布自己的决策$x$，该决策直接影响下层规划的可行集和目标函数，下层在此基础上优化，直到上层的目标函数值$F(x,y)$最优为止(当然，也可能是将$f(x,y)$传递给上层)。
+    \par
+    值得注意的是，虽然上下层皆为线性，但由于上层的目标函数决定于下层的解函数。一般来说，这个解函数不是线性的且不可微。进一步，Bialas和Karwan以实例论证了上层问题的非凸性，在研究二层线性规划时，为了给出二层线性规划良好的解的定义，\uline{通常假定二层规划的下层规划问题的解是唯一的。}
+    \par
+    对于给定的上层决策变量$x\in S$，下层线性规划$f(x,y)$的求解可以用下式代替为：
+    \begin{align}
+    \label{下层线性规划求解的替代}
+        & \mathop{\max}\limits_{y}\  f(x,y)=d^\mathrm{T} y\notag\\
+        & \begin{aligned}
+        s.t.\quad & By\leqslant r-Ax\\
+        &y \geqslant 0
+        \end{aligned}
+    \end{align}
+    而上式(\ref{下层线性规划求解的替代})的对偶问题为：
+    \begin{align*}
+        & \mathop{\min}\limits_{u}\  (r-Ax)^\mathrm{T} u\\
+        & \begin{aligned}
+        s.t.\quad & B^\mathrm{T} u\geqslant d\\
+        &u \geqslant 0
+        \end{aligned}
+    \end{align*}
+    由此可知式(\ref{下层线性规划求解的替代})存在最优解的充分必要条件是：
+    \begin{align*}
+    \left\{\begin{aligned}
+        & By\leqslant r-Ax\\
+        & B^\mathrm{T} u\geqslant d\\
+        & (r-Ax)^\mathrm{T} u=d^\mathrm{T} y\\
+        & y,\mu \geqslant 0
+        \end{aligned}
+            \right.
+    \end{align*}
+    有可行解，并且$y$的取值就是(\ref{下层线性规划求解的替代})式的最优解。
+    \par
+    因此，对于给定的上层决策变量$x \in S$，下层线性规划解的充分必要条件如上所述。这样，就把BLP转化为如下等价形式的单层规划
+    \begin{align*}
+        &\mathop{\max}\limits_{x,y,u}\  F(x,y)=a^\mathrm{T} x+b^\mathrm{T} y\\
+        &s.t.\left\{
+        \begin{aligned}
+        & By\leqslant r-Ax\\
+        & B^\mathrm{T} u\geqslant d\\
+        & (r-Ax)^\mathrm{T} u=d^\mathrm{T} y\\
+        & x,y,u \geqslant 0
+        \end{aligned}
+            \right.
+    \end{align*}
+    记$V^e=\{u|B^\mathrm{T} u\geqslant d,u\geqslant 0\}$为下层规划问题的对偶问题的可行解集，根据线性规划理论可知$V^e$至多存在有限个极点，所以我们可以用单纯性法求得$V^e$的所有极点，记所有极点集为$V=\{u^1,u^2,\cdots,u^l\}$。这样，可以把BLP转化为如下一系列的线性规划问题：$for i = 1,2,\dots,l$
+    \begin{align*}
+        &{\max}\  F(x,y)=a^\mathrm{T} x+b^\mathrm{T} y\\
+        &s.t.\left\{
+        \begin{aligned}
+        & By\leqslant r-Ax\\
+        & (r-Ax)^\mathrm{T} u^i=d^\mathrm{T} y\\
+        & x,y \geqslant 0
+        \end{aligned}
+            \right.
+    \end{align*}
+    \par
+    可以利用单纯形法求解上述问题。因为假定$\Omega$和$IR$是非空有界的，所以对$i\in \{1,2,\ldots ,l\}$，上述问题有最优解或者没有可行解。令$I=\{1,2,\ldots ,l\}$，如果原BLP有最优解，则必存在$i \in I$，使得上述问题有最优解，因此$I\neq \phi$。对于$i \in I$，令$(x^i,y^i)$为上述问题的最优解，则BLP的最优解为使$F(x^k,y^k)=\max\{F(x^i,y^i),i \in I\}$的$(x^k,y^k)$。
+\section{二层线性规划的有效解}
+    \par
+    一个双目标规划称为一个二层规划相应的双目标规划，是指该双目标规划的两个目标函数分别为二层规划的上、下层目标函数，其可行解为二层规划的容许集。如果二层规划的最优解是相应的双目标规划的Pareto有效解，称该最优解为有效最优解。值得一提的是：即使是线性二层规划，最优解也可能不是有效解。
+    \par
+    考虑如下二层线性规划问题
+    \begin{align*}
+        &\mathop{\max}\limits_{x}\  F(x,y)=a^\mathrm{T} x+b^\mathrm{T} y\\
+        &s.t.\quad y \in \arg{}\max\{f(x,y)=c^\mathrm{T} x+d^\mathrm{T} y|Ax+By\leqslant r,x,y\geqslant 0\}
+    \end{align*}
+    其中：$F(x,y),f(x,y)$为目标函数。上式相应的双目标规划为
+    \begin{align*}
+        &\mathop{\max}\limits_{x,y}\  (F(x,y),f(x,y))\\
+        & \begin{aligned}
+        s.t.\quad& Ax+By\leqslant r\\
+        & x,y \geqslant 0
+        \end{aligned}
+    \end{align*}
+    \par
+    记$S=\{(x,y)|Ax+By\leqslant r,x,y\geqslant 0\}$为BLP的约容许集，令$S(x)=\{y|By\leqslant r-Ax,\text{当x固定}\}$，记$S'=\{(\bar{x},\bar{y})\in S|f(\bar{x},\bar{y})\geqslant f(\bar{x},{y}),\forall y \in S(x)\}$为BLP的可行集。记$S''=\{(\bar{x},\bar{y})\in S'|F(\bar{x},\bar{y})\geqslant F(\bar{x},{y}),\forall (x,y) \in S'\}$为BLP的最优解集。$(\bar{x},\bar{y})\in S$是双目标规划的Pareto有效解$\Leftrightarrow$不存在$(x,y)\in S$使$F(x,y)\geqslant F(\bar{x},\bar{y})$，$f(x,y)\geqslant f(\bar{x},\bar{y})$且至少有一个是严格不等式。
+    \par
+    假设1：容许集$S$有界；假设2：线性二层规划存在有效最优解。如果BLP存在有效最优解，则其有效最优解可在容许集$S$的顶点达到。
+    \begin{align*}
+        &\mathop{\max}\ F(x)\\
+        &\begin{aligned}
+        s.t.\quad & x\in X\\
+        &y \in \arg\max\{f(y)|g(x,y)\leqslant 0,y\in Y\}
+        \end{aligned}
+    \end{align*}
+    其中：$F(x),f(y),g(x,y)$为各个自变量的线性函数，$X,Y$为多面体。
+    \begin{proposition}[1]
+    上述问题存在最优解是Pareto有效解\footnote{刘红英.多层规划的理论与算法研究.西电.博文}。
+    \end{proposition}
+    \begin{proposition}[2]
+    设$x^*\in D$，则$x^*$是多目标规划$\max\{f_1(x),\cdots,f_p(x)|x \in D\}$有效解的充要条件是$x^*$是如下规划的最优解
+    \begin{align*}
+         &\mathop{\max}\ \mathop{\sum}\limits_{i=1}^pf_i(x)\\
+        &s.t.\left\{
+        \begin{aligned}
+        & f_i(x)\geqslant f_i(x^*)\\
+        & i=1,2,\ldots,p\\
+        & x\in D
+        \end{aligned}
+            \right.
+    \end{align*}
+    \end{proposition}
+    \par
+    下面来讨论：当已知一个最优解时，在假设2下如何求解有效最优解。记$(\bar{x},\bar{y})$为所得最优解，利用Kth-best算法思想，给出有效最优解的求解算法：\\
+    \textbf{step1.}判断$(\bar{x},\bar{y})$是否为多目标的有效解，若是，输出$(\bar{x},\bar{y})$；否则，转到step2。\\
+    \textbf{step2.}判断$(\bar{x},\bar{y})$是否为$S$的极点，若是，转到step4；否则，求一个极点最优解，仍记为$(\bar{x},\bar{y})$。\\
+    \textbf{step3.}判断$(\bar{x},\bar{y})$是否为多目标规划的有效解，若是，输出$(\bar{x},\bar{y})$并停止；否则，转到step4。\\
+    \textbf{step4.}记$(x^0,y^*0)=(\bar{x},\bar{y})$令$i=0,w=\{(x^i,y^i)\}$，$T={\phi}^i$。\\
+    \textbf{step5.}(更新)令$w_i$为$(x^i,y^i)$的邻接极点集，且满足$F(\bar{x},\bar{y})=F(x^i,y^i)$，$(x,y)\in w_i$，令$T=T\cup \{(x^i,y^i)\},w=(w\cup w_i)/T$。\\
+    \textbf{step6.}令$i=i+1$，取$(x^i,y^i)\in w$转到step7。\\
+    \textbf{step7.}(可行性检验)判断$(x^i,y^i)$是否为二级规划的可行解，若是，转到step8；否则，转到step5。\\
+    \textbf{step8.}(有效性检验)判断$(x^i,y^i)$是否为多目标的有效解，若是，输出$({x^i},y^i)$，且停止；否则，转到step5。
+    \par
+    以上算法的实质是隐枚举所有使上层目标值等于最优值的约束集$S$的极点，直到搜索到一个极点是可行的、有效的。其中，step8的有效性检验利用命题(2)的结果来完成。
+    \subsection{最优解的有效化}
+        \par
+        二层规划的可行集$S'$中存在有效集。对于一个二层规划问题，我们自然希望求得最优解，如果不易求出，也应该首先考虑在其可行域上，求满足一定条件的次优解。考虑次优解的满足条件可以为：(1)次优解是多目标规划的有效解。(2)次优解是二层规划的可行解。(3)在所有满足(1)(2)的点中求使上层目标值最大的解。对于线性二层规划来说，bard的有效点算法满足以上条件。因而，第一种有效点方法采用bard的算法。下面，考虑第二种有效化方法。
+        \par
+        记$\hat{S}=\{(x,y)\in S|f(x,y)\geqslant f(\bar{x},\bar{y}),\forall (x,y)\in S\}$，其中$(\bar{x},\bar{y})$为二层规划的最优解。
+            \begin{align*}
+                &\mathop{\max}\   F(x,y)\\
+                &s.t.\quad (x,y)\in \hat{S}
+            \end{align*}
+        \par
+        上述问题的解中存在一点是多目标规划的有效解。取上述问题的解与多目标规划的有效解的交集中的点作为有效化结果，称之为第二种有效化方法，记$\mathcal{N}S=\{(x,y)|(x,y)\in S,F(x,y)\geqslant F(\bar{x},\bar{y}),f(x,y)\geqslant f(\bar{x},\bar{y}),\}$，其中$(\bar{x},\bar{y})$为二层规划的最优解。
+\section{下层多追随二层线性规划(有效极点法)}
+    \par
+    考虑如下二层规划问题：
+    \begin{align*}
+        \mathop{\max}\limits_{x}\  &F(x,y_1,y_2,\cdots,y_n)=a^\mathrm{T} x+\mathop{\sum}\limits_{i=1}^nb_i^\mathrm{T} y_i\\
+        s.t.\quad & Ax+\mathop{\sum}\limits_{i=1}^n B_iy_i\leqslant s\\
+        &y_i(i=1,2,\ldots,n)\text{是下面问题的解}\\
+        & \mathop{\max}\limits_{y_i}\  f_i(x,y_i)=c_i^\mathrm{T} x+d_i^\mathrm{T} y_i\\
+       & \begin{aligned}
+       s.t.\quad &C_i^\mathrm{T} x+D_iy_i\leqslant t_i\\
+       &x,y_i \geqslant 0
+       \end{aligned}
+    \end{align*}
+    其中：$F(x,y_1,y_2,\cdots,y_n)$是上层目标函数，$f_i(x,y)$为下层目标函数，表示多个下层决策者。
+    $x,a\in R^{n}$，$b_i,y_i \in R^{n_i}$，$s\in R^{p_i}$，$t_i \in R^{q_i}$，$c_i\in R^{n}$，$d_i\in R^{n_i}$，$B_i\in R^{p_i\times n_i}$，$C_i\in R^{q_i\times n}$，$D_i\in R^{q_i\times n_i}$，$A \in R^{n\times n}$。$x,y_i$分别是上、下层的决策变量。
+    \par
+    经过和BLP(二级线性规划)相似的处理，我们可以将多追随二层线性规划问题转化为如下的单层线性规划问题：当上层决策变量$x\in S$给定后，下层问题解存在唯一性的充分必要条件为
+    \begin{align*}
+    \left\{\begin{aligned}
+        & C_i x+D_iy_i\leqslant t_i\\
+        & w_i^\mathrm{T} D_i\geqslant d_i\\
+        & w_i^\mathrm{T} (t_i-C_ix)\geqslant d_i^\mathrm{T} y_i\\
+        & w_i \geqslant 0\\
+        & y_i \geqslant 0\\
+        & i=1,2,\ldots,n
+        \end{aligned}
+            \right.
+    \end{align*}
+    有可行解，并且取值$(y_1,y_2,\ldots,y_n)$为下层问题的最优解。
+    \par
+    多追随二层线性规划的等价单层线性规划问题：
+    \begin{align*}
+        &\mathop{\max}\limits_{\substack{x,y_1,y_2,\cdots,y_n\\w_1,w_2,\cdots,w_n}} F(x,y_1,y_2,\cdots,y_n)=a^\mathrm{T} x+\mathop{\sum}\limits_{i=1}^nb_i^\mathrm{T} y_i\\
+        & s.t.\left\{
+        \begin{aligned}
+        & Ax+\mathop{\sum}\limits_{i=1}^nB_iy_i\leqslant s_i\\
+        & C_ix+D_iy_i\leqslant t_i\\
+        & w_i^\mathrm{T} D_i\geqslant d_i\\
+        & w_i^\mathrm{T} (t_i-C_ix)\geqslant d_i^\mathrm{T} y_i\\
+        & x \geqslant 0,w_i \geqslant 0 ,y_i \geqslant 0\\
+        & i=1,2,\ldots,n
+        \end{aligned}
+            \right.
+    \end{align*}
+    \par
+    记上述问题的下层第$i$个规划的对偶可行解集为$W_i^t=\{w_i|w_i^\mathrm{T} D_i\geqslant d_i,w_i\geqslant 0\}$。下层第$i$个规划的对偶可行解集极点集为$w_i$(含有限个点)。
+    \begin{definition}
+    存在$n$个下层规划的对偶可行解集极点集$w_1,w_2,\ldots,w_n$，则$w_1,w_2,\ldots,w_n$的笛卡尔积定义为：
+    \begin{align*}
+        W=w_1\times w_2\times \cdots \times w_n=\{w^j|j=1,2,\ldots,t\}
+    \end{align*}
+    其中：$w^j=(w_1^j,w_2^j,\ldots,w_n^j)$，且$w_i^j\in  W_i(i=1,2,\ldots,n)$。
+    \end{definition}
+
+    \par
+    根据线性规划理论可知，下层$n$个规划的对偶可行解集$w_i^t (i=1,2,\ldots,n)$分别至多存在有限个极点，同时，可以利用线性规划方法求解出它们所有极点。于是，可得上述问题的对偶可行解极点集$w_1,w_2,\ldots,w_n$的笛卡尔积$W$。又因为LP在可行域非空的情况下，若线性规划存在有限最优解，则目标函数的最优值在某极点上达到。假设$W$中有$t$个元素，即$W=(w^1,w^2,\cdots,w^t )$，根据$w_1,w_2,\ldots,w_n$的笛卡尔积定义，可以把上述问题转化为$t$个单层线性规划问题：for j = 1, 2, ..., t
+    \begin{align*}
+        &\mathop{\max}\limits_{x,y_1,y_2,\cdots,y_n} F(x,y_1,y_2,\cdots,y_n)=a^\mathrm{T} x+\mathop{\sum}\limits_{i=1}^nb_i^\mathrm{T} y_i\\
+        & s.t.\left\{
+        \begin{aligned}
+        & Ax+\mathop{\sum}\limits_{i=1}^nB_iy_i\leqslant S_i\\
+        & C_ix+D_iy_i\leqslant t_i\\
+        & w_i^{jT}(t_i-C_ix) = d_i^\mathrm{T} y_i\\
+        & w_i^j \geqslant 0,y_i \geqslant 0\\
+        & i=1,2,\ldots,n
+        \end{aligned}
+            \right.
+    \end{align*}
+    \par
+    因为假定$\Omega$和$IR$(BLP定义下的推广)是非空有界的，所以对于$j\in \{1,2,\ldots,t\}$，上述问题有最优解或者没有可行解。令$I\in \{1,2,\ldots ,t\}$，上述问题有最优解或者没有可行解。令$I=\{1,2,\ldots ,l\}$，如果原多追随二层规划有最优解，则必存在$j \in I$，使得上述问题有最优解。因此$I\neq \phi$。对于$j \in I$，令$(x^j,y^j)$为上述问题的最优解，则下层多追随二层线性规划的最优解为使$F(x^k,y^k)=\max\{F(x^j,y^j),j \in I\}$的$(x^k,y^k)$。
+\section{二层非线性规划}
+    \par
+    首先讨论二层规划上层为非线性目标，下层为线性规划的二层非线性规划问题。利用罚函数法进行求解。其次，对一般的非线性规划做简单介绍，利用KKT条件和Lagrange函数，把二层非线性规划等价转化为一个单层非线性规划，然后进行求解。
+    % \subsection{二层非线性规划}
+        \par
+        考虑如下二层非线性规划
+        \begin{align*}
+            \mathop{\min}\limits_{x}\quad &F(x,y)\\
+            s.t.\quad & G(x,y)\leqslant 0\\
+            & x\geqslant 0\\
+            &y\text{是如下规划问题的解}\\
+           & \mathop{\min}\limits_{y}\  f(x,y)=c_2^\mathrm{T} x+d_2^\mathrm{T} y\\
+           &\begin{aligned}
+           s.t.\quad & Ax+By\leqslant b\\
+           & y \geqslant 0
+           \end{aligned}
+        \end{align*}
+        其中：$x\in X\subset R^n,y\in Y\subset R^m$是决策变量。$F:X\times Y\to R$为非线性可微函数，$f:X\times Y\to R$为线性函数，$b \in R^p$，$d_1,d_2\in R^m$，$c_1^\mathrm{T} ,c_2^\mathrm{T} \in R^n$，$G:R^n \times R^m\to R^k$，上述问题的下层规划等价于
+        \begin{align*}
+            & \mathop{\min}\limits_{y}\ f(x,y)=d_2^\mathrm{T} y\\
+            & \begin{aligned}
+            s.t.\quad & By\leqslant b-Ax\\
+            & y \geqslant 0
+            \end{aligned}
+        \end{align*}
+        上述问题的对偶问题(D)可以表示为
+        \begin{align*}
+            & \mathop{\min}\limits_{u}\  (Ax-b)^\mathrm{T} u\\
+            & \begin{aligned}
+            s.t.\quad & -B^\mathrm{T} u \leqslant d_2\\
+            & u \geqslant 0
+            \end{aligned}
+        \end{align*}
+        其中：$u\in R^p$。
+        \par
+        记上述对偶问题的可行域为$U=\{u\in R^p|-B^\mathrm{T} u\leqslant d_2, u\geqslant 0\}$。
+        于是原规划问题等价于
+        \begin{align*}
+            &\mathop{\min}\limits_{x,y,u}\  F(x,y)\\
+            &s.t.\left\{
+            \begin{aligned}
+            & G(x,y)\leqslant 0\\
+            & d_2^\mathrm{T} y-(Ax-b)^\mathrm{T} u=0\\
+            & Ax+By \leqslant b\\
+            & -B^\mathrm{T} u\leqslant d_2\\
+            & x,y,u \geqslant 0
+            \end{aligned}
+            \right.
+        \end{align*}
+        把上述规划和等式约束作为罚项构造到目标函数中，有
+            \begin{align}
+            \label{二层非线性规划1}
+            &\mathop{\min}\limits_{x,y,u}\  g(x,y,u)=F(x,y)+M\left(d_2^\mathrm{T} y-(Ax-b)^\mathrm{T} u\right) \\
+            &s.t.\left\{
+            \begin{aligned}
+             & G(x,y)\leqslant 0\notag \\
+             & Ax+By \leqslant b\\
+             & -B^\mathrm{T} u\leqslant d_2\notag \\
+             & x,y,u \geqslant 0\notag
+            \end{aligned}
+            \right.\notag
+            \end{align}
+        其中：$M$属于$R_{++}$的惩罚因子或罚权重。
+        \begin{theorem}
+        如果$(x_0,y_0)\in S$是原问题的最优解，且上述(\ref{二层非线性规划1})存在最优解，则$\exists M\in R_{++},u_0\in U$，当且仅当$M\geqslant M_1$时，$(x_0,y_0,u_0)$是(\ref{二层非线性规划1})式的最优解。
+        \end{theorem}
+        \par
+        仔细观察式(\ref{二层非线性规划1})，不难发现，上层目标函数$F(x,y)$是一个连续、可微凸函数，而$M\left(d_2^\mathrm{T} y-(Ax-b)^\mathrm{T} u\right)$则不一定是凸函数。值得一提的是，$u$和$x,y$是没有关系的。于是我们猜想这个非凸函数是否可以进一步简化，得到一个凸函数或者更特殊的函数。我们构造下列函数
+            \begin{align}
+            \label{二层非线性规划2}
+            & \mathop{\min}\limits_{x_0,y_0,u}\ g(x,y,u)=F(x_0,y_0)+M\left(d_2^\mathrm{T} y_0-(Ax_0-b)^\mathrm{T} u\right) \\
+            &s.t.\left\{
+            \begin{aligned}
+             & -B^\mathrm{T} u\leqslant d_2\notag \\
+             & u \geqslant 0\notag
+            \end{aligned}
+            \right.
+            \end{align}
+            其中：$(x_0,y_0)$是原问题的最优解。
+        \begin{theorem}
+        设式(\ref{二层非线性规划1})的最优解为$(x_0,y_0,u_0)$，当且仅当$u_0$是上述问题的最优解。
+        \end{theorem}
+        \par
+        由于$x,y$与$u$无关，所以先固定$x,y$，再来求解$u$。仔细观察会发现，上述问题是一个单层线性规划，其最优解可能在约束域极点处找到，于是我们求解出上述问题的约束域极点，记为$U_D=\{u^j,j=1,2,\ldots,s\}$，构造如下问题：
+        \begin{align}
+        \label{二层非线性规划3}
+        &\mathop{\min}\limits_{x,y,u}\ g(x,y,u^j)=F(x,y)+M\left(d_2^\mathrm{T} y-(Ax-b)^\mathrm{T} u^j\right) \\
+        &s.t.\left\{
+        \begin{aligned}
+         & G(x,y)\leqslant 0\notag \\
+         & Ax+By \leqslant b\\
+         & u^j\in U_D,j=1,2,\ldots,s\notag \\
+         & x,y \geqslant 0\notag
+        \end{aligned}
+        \right.
+        \end{align}
+        \begin{theorem}
+        如果$(x_0,y_0)$是原问题的最优解，则$\exists M_1\in R_{++}$，$u^j\in U_D$，当且仅当$M\geqslant M_1$时，$(x_0,y_0,u^j)$是问题(\ref{二层非线性规划1})的最优解。
+        \end{theorem}
+        \par
+        由此，求解原问题时，我们可以先任意固定一个$u^j\in U_D$，然后求问题(\ref{二层非线性规划3})的最优解$(j=1,2,\ldots,s)$。
+        \par
+        假设求出问题(\ref{二层非线性规划3})的最优解为$(x^j,y^j)$，并且满足$d_2^\mathrm{T} y^j(Ax^j-b)^\mathrm{T} u^j=0$，那么，可以确定$(x^j,y^j)$是原问题的最优解，于是问题(\ref{二层非线性规划2})则转化为一个凸函数在相应约束域中求得最优的问题：\\
+        \textbf{step1.}用单纯性法求问题(\ref{二层非线性规划2})的约束域极点，记$U_D=\{u^j,j=1,2,\ldots,s\}$给定初始搜索条件.\\
+        \textbf{step2.}给定初始搜索条件$M=1,\delta =5,k=1,u^k$和容许误差$\varepsilon$的极点，若是，转到step2；否则，求一个极点最优解，仍记为$(\bar{x},\bar{y})$\\
+        \textbf{step3.}求解问题(\ref{二层非线性规划3})，记最优解为$(x^k,y^k,u^k)$.\\
+        \textbf{step4.}如果$h(x^k,y^k,u^k)\leqslant \varepsilon$，则终止计算，输出$(x^k,y^k)$；否则，转到step5.\\
+        \textbf{step5.}如果$k<s$，则令$k:=k+1$返回step3；否则，令$k=1,M=\delta M$返回step3.
+\section{一般二层非线性规划}
+        \par
+        考虑如下二层非线性规划问题
+        \begin{align*}
+            \mathop{\min}\limits_{x}\ & F(x,y)\\
+            s.t.\quad & G(x,y)\leqslant 0\\
+            &x\geqslant 0\\
+            &y\text{为如下问题解}\\
+            & \mathop{\min}\limits_{y}\ f(x,y)\\
+            &s.t.\quad  f(x,y) \geqslant 0
+        \end{align*}
+        其中：$F,f:R^n\times R^m\to R$分别是上下层目标函数，上下层规划的向量值函数$G:R^n\times R^m\to R^q$，$g:R^n\times R^m\to R^p$，$x\in X\subset R^n$，$y\in Y\subset R^m$为决策变量。
+        \par
+        假设$F,f,G,g$为连续可微的凸函数，我们利用KKT条件和Lagrange函数将二层规划转化为单层规划，再利用罚函数法求解单层规划，以此来近似原二层规划最优解。
+        \par
+        假设下层规划是一个凸规划问题，对于每个$x \in S(x)$，满足\underline{MFCQ约束条件}，则可以等价为以下KKT条件：
+            \begin{align*}
+            &{\nabla}_yL({x,y,\lambda})= {\nabla}_y f(x,y)+{\lambda}^\mathrm{T} {\nabla}_yg(x,y)=0 \\
+            & g(x,y)\leqslant 0 \\
+            & {\lambda}^\mathrm{T} g(x,y)=0\\
+           & {\lambda} \geqslant 0
+            \end{align*}
+            其中：下层规划问题的Lagrange函数形式为
+            \begin{align*}
+            L({x,y,\lambda})= f(x,y)+{\lambda}^\mathrm{T} g(x,y)
+            \end{align*}
+        \begin{theorem}
+        如果$(x,y)\in S$，则$(x,y)\in IR$的一个充分必要条件为：存在一个${\lambda} \geqslant 0$，使得$(x,y,\lambda)$满足KKT条件。
+        \par
+        最后，用KKT条件来代替原问题的下层规划，则可以把原问题转化为如下单层规划
+            \begin{align*}
+            &\mathop{\min}\limits_{x,y,\lambda}\  F(x,y)\\
+            &s.t.\left\{
+            \begin{aligned}
+            & G(x,y)\leqslant 0\\
+            & {\nabla}_y f(x,y)+{\lambda}^\mathrm{T} g(x,y)=0\\
+            & g(x,y)\leqslant 0\\
+            & {\lambda}^\mathrm{T} g(x,y) \leqslant 0\\
+            & x\in X,y\in Y,{\lambda}\geqslant 0
+            \end{aligned}
+                \right.
+        \end{align*}
+        \end{theorem}
+        \begin{theorem}
+        $(x^*,y^*)$是原问题的最优解的充要条件是存在${\lambda}^*\geqslant 0$，使$(x^*,y^*,{\lambda}^*)$是上述问题的最优解。
+        \end{theorem}
+        \par
+        计算上述问题等价于
+            \begin{align*}
+            &\mathop{\min}\limits_{x,y,\lambda}\  F(x,y)\\
+            &s.t.\left\{
+            \begin{aligned}
+            & G(x,y)\leqslant 0\\
+            & \left|{\nabla}_y f(x,y)+{\lambda}^\mathrm{T} {\nabla}_yg(x,y)\right|=0\\
+            & g(x,y)\leqslant 0\\
+            & \left|{\lambda}^\mathrm{T} g(x,y)\right| = 0\\
+            & x\in X,y\in Y,{\lambda}\geqslant 0
+            \end{aligned}
+            \right.
+        \end{align*}
+        将等式约束代入目标函数，有
+            \begin{align*}
+            &\mathop{\min}\limits_{x,y,\lambda}\  F(x,y)+M(\left|{\nabla}_y f(x,y)+{\lambda}^\mathrm{T} {\nabla}_yg(x,y)\right|+|{\lambda}^\mathrm{T} g(x,y)|)\\
+            &s.t.\left\{
+            \begin{aligned}
+            & G(x,y)\leqslant 0\\
+            & g(x,y)\leqslant 0\\
+            & x\in X,y\in Y,{\lambda}\geqslant 0
+            \end{aligned}
+                \right.
+        \end{align*}
+        于是求解二层非线性规划问题等价于求上述问题
+
+    \subsection{二层非线性规划更一般的模型}
+        \par
+        (1)下层以最优解为最佳反应的二层非线性规划更一般的模型如下
+        \begin{align*}
+            \mathop{\min}\limits_{x,y}\ &F(x,y)\\
+            s.t.\quad & G(x,y)\leqslant 0\\
+            & x\in R^n\geqslant 0\\
+            &y\text{是如下规划问题的解}\\
+           & y=\arg\mathop{\min}\limits_{y}\ f(x,y)\\
+           &s.t.\quad g(x,y) \leqslant 0
+        \end{align*}
+        其中：$F,G,f,g$中至少有一个为非线性函数。
+        \par
+        (2)下层以目标函数值为最佳反应的二层非线性规划的一般形式如下
+        \begin{align*}
+            \mathop{\min}\  &F(x,f)\\
+            s.t.\quad & G(x,y)\leqslant 0\\
+            & x\in R^n\geqslant 0\\
+            &f=\mathop{\min}\ f(x,y)\\
+            & \begin{aligned}
+            s.t. \quad &g(x,y)\leqslant 0\\
+            & y\in R^m\geqslant 0
+            \end{aligned}
+        \end{align*}
+
+
+

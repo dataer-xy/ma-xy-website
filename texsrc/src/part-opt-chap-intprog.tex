@@ -1,0 +1,368 @@
+% % \part{优化模型}
+% % \chapter{整数规划和混合整数规划}
+
+\chapter{整数规划和混合整数规划}
+\section{整数规划}
+    \par
+    在广义的整数规划中，我们要求某一规划问题中的变量$x=(x_1,x_2,\ldots,x_m)$有一部分取整数。下面提到的整数规划是指，在线性规划的基础上，要求变量$x$全部为整数，此类问题亦称为线性整数规划，其一般形式为
+    \begin{align*}
+    & \mathop{\max} \  c^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &A(x) \leqslant b\\
+    &x \in Z_+^n
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$Z_+^n$表示非负整数的集合。$x \in Z_+^n$，$A \in R^{m\times n}$，$b \in R^m$，$c \in R^n$。设其可行域$S=\{x \in Z_+^n|Ax \leqslant b\}$。
+    通常采用割平面法和分支定界法来求解整数规划，这里不做详细介绍。
+    % \subsection{MATLAB应用实例：发电机的最优化调度}
+\section{0-1整数规划}
+    \par
+    线性整数规划是线性规划的特例，但其又有自身的特性，当整数规划中的整数变量只允许在0或者1内取值时，被称为0-1整数规划
+    \begin{align*}
+    & \mathop{\min}\ c^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax \geqslant b\\
+    &x_i = 0/1
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$x=(x_1,x_2,\ldots,x_n)$，$A \in R^{m\times n}$，$b \in R^m$，$c \in R^n$。由于自变量$x$的取值有限，因此，自变量个数不变的情况下，可以采用穷举法得到最优解。在MATLAB低版本中，采用bintprog来求解0-1整数规划，之后的高版本采用intlinprog来求解。bintprog的调用格式为
+    \par
+    [x,fval,exitflag,output]=bintprog(f,A,b,Aeq,beq,x0,options)
+    \par
+    用bintprog求解如下0-1规划问题
+    \begin{align*}
+    &\mathop {\min} \ f(x)=x_1+2x_2+3x_3+x_4+x_5\\
+    &s.t.\left\{
+    \begin{aligned}
+    &2x_1+3x_2+5x_3+4x_4+7x_5 \geqslant 8\\
+    &x_1+x_2+4x_3+2x_4+2x_5 \geqslant 5\\
+    &x_1x_2x_3x_4x_5 = 0/1
+    \end{aligned}
+    \right.
+    \end{align*}
+    求解程序如下
+    \begin{lstlisting}[language=Matlab]
+    f = [1,2,3,1,1];
+    A = [-2,-3,-5,-4,-7;-1,-1,-4,-2,-2];
+    b = [-8;-5];
+    [x, fval] = bintprog(f, A, b)
+    \end{lstlisting}
+
+    % \subsection{0-1规划——旅行商问题TSP}
+\section{混合整数规划}
+    \subsection{问题的引入与分析}
+        \par
+        考虑如下物流选址问题：设有客户$M=\{1,2,\ldots,m\}$，地点集$N=\{1,2,\ldots,n\}$。我们希望从地点集$N$中选择若干个地点修建设备。假设在第$j\in N$个地点修建设备的费用为$f_j$，设$x_{ij}$表示客户$i$从$j$中获得的商品量，$c_{ij}$表示商家运输单位商品所能产生的效应。我们的目标是求最小费用。
+        \par
+        解：引入二元变量$y \in B^n$，其中$y_j=1$表示在$j$地修建设备
+        \begin{align*}
+        &\mathop{\max}\ \mathop{\sum}\limits_{i=1}^m\mathop{\sum}\limits_{j=1}^n c_{ij}x_{ij}-\mathop{\sum}\limits_{j=1}^nf_jy_j\\
+        &s.t.\left\{
+        \begin{aligned}
+        &\mathop{\sum}\limits_{j\in N} x_{ij}=b_i\quad i \in M\\
+        &\mathop{\sum}\limits_{i\in M} x_{ij}-{\mu}_jy_j \leqslant 0\quad j \in N\\
+        &x_{ij} \geqslant 0 , i \in M,j\in N,y \in B^n
+        \end{aligned}
+        \right.
+        \end{align*}
+        待解变量为$(x,y)$。\par
+        当然，如果不考虑$j$地的建设费用$f_j$，则不需要引入0-1变量$y$，于是有
+        \begin{align*}
+        &\mathop{\max}\ \mathop{\sum}\limits_{i=1}^m\mathop{\sum}\limits_{j=1}^n c_{ij}x_{ij}\\
+        &s.t.\left\{
+        \begin{aligned}
+        &\mathop{\sum}\limits_{j} x_{ij}=b_i \quad i \in M\\
+        &\mathop{\sum}\limits_{i} x_{ij}={\mu}_j \quad j \in N\\
+        &x_{ij} \geqslant 0 , i \in M,j\in N
+        \end{aligned}
+        \right.
+        \end{align*}
+        进而，如果产量和销量相等则有$s.t.\ {\sum}b_i={\sum}{\mu}_j$。于是物流选址问题就变成产销运输问题。
+        \par
+        可以发现，上述问题的优化变量有$x,y$，$x \in R^{m\times n},y \in B^n$，这是一个既有实数变量又有整数变量$y$的混合优化问题。
+    \subsection{混合整数规划的一般形式}
+        \par
+        我们称优化变量中既有实数变量又有整数变量的优化问题为混合整数优化问题，其一般形式为
+        \begin{align*}
+        &\mathop{\max}\  c^\mathrm{T} x+h^\mathrm{T} y\\
+        &s.t.\left\{
+        \begin{aligned}
+        &Ax+Gy \leqslant b\\
+        &x \in Z_{+}^n\\
+        &y \in R_{+}^p
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$A \in R^{m\times n}$，$G \in R^{m\times p}$，$c \in R^p$，$b \in R^m$，$Z_{+}$表示非负整数，$R_+$表示非负实数。
+    \subsection{MATLAB应用实例}
+        \par
+        MATLAB中，用intlinprog求解整数规划、0-1规划和混合整数规划问题。其调用格式为
+        \par
+        [x,fval,exitflag,output]=intlinprog(f,intcon,A,b,Aeq,beq,lb,ub,options)\\
+        其中：intcon为整数变量的序号：设优化变量为$x=(x_1,x_2,\ldots,x_n)_1$，如果$x_2x_3$为整数变量，则intcon = [2, 3]。
+        \par
+        混合整数优化的一般形式为
+        \begin{align*}
+        &\mathop {\min}\limits_x\  f^\mathrm{T} x\\
+        &s.t.\left\{
+        \begin{aligned}
+        &Ax \leqslant b\\
+        &Aeq x \leqslant beq\\
+        &lb \leqslant x \leqslant ub\\
+        &x\text{为部分整数}
+        \end{aligned}
+        \right.
+        \end{align*}
+        \par
+        用intlinprog求解如下混合整数规划问题
+        \begin{align*}
+        &\mathop {\min}\limits_x \  8 x_1+x_2\\
+        &s.t.\left\{
+        \begin{aligned}
+        &x_1+2x_2 \geqslant -14\\
+        &-4x_1-x_2 \leqslant -33\\
+        &2x_1+x_2 \leqslant 20\\
+        &x_2\text{为整数}
+        \end{aligned}
+        \right.
+        \end{align*}
+        求解程序如下
+        \begin{lstlisting}[language=Matlab]
+        f = [8; 1];
+        intcon = 2;
+        A = [-1,-2;-4,-1;2,1];
+        b = [14;-33;20];
+        x = intlinprog(f, incon, A, b, options);
+        options = optimoptions('intlinprog', 'Display', 'off')
+        \end{lstlisting}
+        \par
+        如果还要求整数变量$x_2$为0-1变量，可进行如下设置
+        \begin{lstlisting}[language=Matlab]
+        lb = [0; 0];
+        ub = [inf; 1];
+        \end{lstlisting}
+    \subsection{工厂选址问题：混合整数规划求解}
+        \par
+        前面的引例中，我们介绍了工厂选址问题：但其仅有工厂和销售点$M$，在实际过程中，我们知道还应存在仓库，商家生产产品，然后将产品运输到仓库存储，零销商从仓库中进货去销售。现在，我们要确定一个工厂，仓库销售点的匹配，来使商家的利润最大。即在哪进、在哪销以及销多少的问题。
+        \par
+        设$F$为工厂的数量，$W$为仓库的数量，$S$为销售点的数量，$f$为第$f$个工厂，$w$为第$w$个仓库，$s$为第$s$个销售点，用${\footnotesize \square}$表示工厂，$*$表示仓库，$\circ$表示销售点。工厂选址问题如图(\ref{fig:工厂选址问题示意图})所示
+        \begin{figure}[H]
+        \centering
+        \includegraphics[width=8cm]{images/factory_location.jpg}
+        \caption{工厂选址问题示意图}
+        \label{fig:工厂选址问题示意图}
+        \end{figure}
+        % \textcolor[rgb]{1,0,0}{todo:图片：工厂选址问题示意图}
+        \par
+        假设我们已经知道各$f,w,s$的位置，并且假设有$p$种可销售的产品，$p$为第$p$种产品。设每个销售点$S$对产品$p$的销售量为$d(s,p)$，每个工厂$f$对产品$p$的产量不超过$pcap(f,p)$，仓库$w$的容量为$wcap(w)$，从仓库$w$转移到销售点$s$的产品$p$的量小于$turn(p)*wcap(p)$，其中$turn(p)$为产品转移率，并且假设每个销售点$s$只能有一个进货仓库。
+        \par
+        商品的转移费用依赖于$f,w,s$之间的距离，设$dist(a,b)$表示$ab$之间的距离，并且已知。则$a$到$b$转移产品$p$的花费为$dist(a,b)*tcost(p)$。其中：$tcost(p)$为产品单位距离的转移费用。\\
+        设$pcost(f,p)$为工厂$f$生产单位产品$p$的费用。
+        \par
+        现在求工厂到仓库的产品转移量$x(p,f,w)$，使费用最小。并且求销售点$s$从哪个仓库进货使得费用最小($y(s,w)=1$表示$s$从$w$进货)，则目标为
+        \par
+        目标1：$\text{运输量}\times(\text{成本费}+\text{运输费})$
+        \begin{align*}
+        obj1=\mathop{\sum}\limits_{f}\mathop{\sum}\limits_{p}\mathop{\sum}\limits_{w} x(p,f,w)\cdot (pcost(f,p)+tcost(p)\cdot dist(f,w))
+        \end{align*}
+        \par
+        目标2：$\text{需求量} \times \text{运输费}$
+        \begin{align*}
+        obj2=\mathop{\sum}\limits_{s}\mathop{\sum}\limits_{w}\mathop{\sum}\limits_{p} d(s,p)\cdot tcost(p)\cdot dist(s,w)\cdot y(s,w)
+        \end{align*}
+        综合目标为
+        \begin{align*}
+        \mathop{\min}\limits_{xy} \ obj=obj1+obj2
+        \end{align*}
+        约束条件：\\
+        \ding{172}工厂$f$的生产限制
+        \begin{align*}
+        \mathop{\sum}\limits_{w} x(p,f,w) \leqslant pcap(f,p)
+        \end{align*}
+        \ding{173}要满足需求量
+        \begin{align*}
+        \mathop{\sum}\limits_{f} x(p,f,w) = \mathop{\sum}\limits_{s} (d(s,p)\cdot y(s,w))
+        \end{align*}
+        \ding{174}仓库$W$的容量限制
+        \begin{align*}
+        \mathop{\sum}\limits_{p} \mathop{\sum}\limits_{s}(d(s,p) / turn(p))\cdot y(s,w) \leqslant wcap(w)
+        \end{align*}
+        \ding{175}每个$s$只能有一个进货仓库$w$
+        \begin{align*}
+        &\mathop{\sum}\limits_{w} y(s,w) = 1\\
+        &x \geqslant 0\\
+        &y \in \{0,1\}
+        \end{align*}
+        \par
+        上述问题是一个混合线性规划问题，其求解程序如下
+        \begin{lstlisting}[language = Matlab]
+        %% 工厂，仓库和销售网点
+        % 这个例子说明了如何建立和求解混合整数线性规划问题。
+        % 问题是要找到一组工厂，仓库和销售网点之间的最佳生产和分销水平。
+        %% 随机生成位置
+        rng default % for reproducibility
+        N = 20; % N from 10 to 30 seems to work. Choose large values with caution.
+        N2 = N*N;
+        f = 0.05; % 比重 of factories
+        w = 0.05; % density of warehouses
+        s = 0.1; % density of sales outlets
+        F = floor(f*N2); % number of factories
+        W = floor(w*N2); % number of warehouses
+        S = floor(s*N2); % number of sales outlets
+        xyloc = randperm(N2,F+W+S); % unique locations of facilities
+        [xloc,yloc] = ind2sub([N N],xyloc);
+        h = figure;
+        plot(xloc(1:F),yloc(1:F),'rs',xloc(F+1:F+W),yloc(F+1:F+W),'k*',...
+            xloc(F+W+1:F+W+S),yloc(F+W+1:F+W+S),'bo');
+        legend('工厂','仓库','销售网点','Location','EastOutside')
+        xlim([0 N+1]);ylim([0 N+1])
+
+        %% 生成随机容量,成本,和需求
+        P = 20; % 20种产品
+        % 产品的生产成本在20到100之间
+        pcost = 80*rand(F,P) + 20;%每个工厂F生产产品P的成本矩阵pcost
+        % 产品生产的限量 between 500 and 1500 for each product/factory
+        pcap = 1000*rand(F,P) + 500;%每个工厂F生产产品P的限量
+        % 仓库容量限制 between P*400 and P*800 for each product/warehouse
+        wcap = P*400*rand(W,P) + P*400;%每个仓库W存储产品P的限量
+        % 产品转移率 between 1 and 3 for each product
+        turn = 2*rand(1,P) + 1;%20个产品的转移率在1-3之间
+        % 单位距离转移产品的花费 between 5 and 10 for each product
+        tcost = 5*rand(1,P) + 5;
+        % 销售点的产品需求 between 200 and 500 for each product/outlet
+        d = 300*rand(S,P) + 200;
+        %% 生成目标和约束矩阵和向量
+        obj1 = zeros(P,F,W);
+        obj2 = zeros(S,W);
+        distfw = zeros(F,W); % 距离矩阵：工厂-仓库
+        for ii = 1:F
+            for jj = 1:W
+                distfw(ii,jj) = abs(xloc(ii) - xloc(F + jj)) + abs(yloc(ii) - yloc(F + jj));
+            end
+        end
+        distsw = zeros(S,W); % 距离矩阵：销售网点-仓库
+        for ii = 1:S
+            for jj = 1:W
+                distsw(ii,jj) = abs(xloc(F + W + ii) - xloc(F + jj)) ...
+                    + abs(yloc(F + W + ii) - yloc(F + jj));
+            end
+        end
+        % 构建目标1和目标2 obj1 and obj2.
+        for ii = 1:P
+            for jj = 1:F
+                for kk = 1:W
+                    obj1(ii,jj,kk) = pcost(jj,ii) + tcost(ii)*distfw(jj,kk);
+                end
+            end
+        end
+        for ii = 1:S
+            for jj = 1:W
+                obj2(ii,jj) = distsw(ii,jj)*sum(d(ii,:).*tcost);
+            end
+        end
+        % 合并目标
+        obj = [obj1(:);obj2(:)]; % obj is the objective function vector
+        matwid = length(obj);
+        Aineq = spalloc(P*F + W,matwid,P*F*W + S*W); % 配置 sparse Aeq为非零元素配置内存
+        bineq = zeros(P*F + W,1); % Allocate bineq as full
+        % Zero matrices of convenient sizes:
+        clearer1 = zeros(size(obj1));
+        clearer12 = clearer1(:);
+        clearer2 = zeros(size(obj2));
+        clearer22 = clearer2(:);
+        % 首先，工厂生产量的约束
+        counter = 1;
+        for ii = 1:F
+            for jj = 1:P
+                xtemp = clearer1;
+                xtemp(jj,ii,:) = 1; % Sum over warehouses for each product and factory为每个产品和工厂仓库求和
+                xtemp = sparse([xtemp(:);clearer22]); % Convert to sparse
+                Aineq(counter,:) = xtemp'; % Fill in the row
+                bineq(counter) = pcap(ii,jj);
+                counter = counter + 1;
+            end
+        end
+        % 然后，仓库容量约束
+        vj = zeros(S,1); % The multipliers
+        for jj = 1:S
+            vj(jj) = sum(d(jj,:)./turn); % A sum of P elements
+        end
+        for ii = 1:W
+            xtemp = clearer2;
+            xtemp(:,ii) = vj;
+            xtemp = sparse([clearer12;xtemp(:)]); % Convert to sparse
+            Aineq(counter,:) = xtemp'; % Fill in the row
+            bineq(counter) = wcap(ii);
+            counter = counter + 1;
+        end
+        Aeq = spalloc(P*W + S,matwid,P*W*(F+S) + S*W); % Allocate as sparse
+        beq = zeros(P*W + S,1); % Allocate vectors as full分配向量为满
+        % 然后，需求满足
+        counter = 1;
+        for ii = 1:P
+            for jj = 1:W
+                xtemp = clearer1;
+                xtemp(ii,:,jj) = 1;
+                xtemp2 = clearer2;
+                xtemp2(:,jj) = -d(:,ii);
+                xtemp = sparse([xtemp(:);xtemp2(:)]'); % Change to sparse row
+                Aeq(counter,:) = xtemp; % Fill in row
+                counter = counter + 1;
+            end
+        end
+        % 最终，每一个销售网点只有一个仓库对于
+        for ii = 1:S
+            xtemp = clearer2;
+            xtemp(ii,:) = 1;
+            xtemp = sparse([clearer12;xtemp(:)]'); % Change to sparse row改变稀疏的行
+            Aeq(counter,:) = xtemp; % Fill in row
+            beq(counter) = 1;
+            counter = counter + 1;
+        end
+        %% 设置变量界限和整数变量
+        intcon = P*F*W+1:length(obj);%整数变量
+        lb = zeros(length(obj),1);
+        ub = Inf(length(obj),1);
+        ub(P*F*W+1:end) = 1;
+        %% 求解问题
+        opts = optimoptions('intlinprog','Display','off','PlotFcns',@optimplotmilp);
+        [solution,fval,exitflag,output] = intlinprog(obj,intcon,...
+                                             Aineq,bineq,Aeq,beq,lb,ub,opts);
+        if isempty(solution) % 如果问题是不可行的，或者你提前停止没有解决方案
+            disp('intlinprog did not return a solution.')
+            return
+        end
+        %% 检查解决方案
+        exitflag
+        infeas1 = max(Aineq*solution - bineq)
+        infeas2 = norm(Aeq*solution - beq,Inf)
+        diffint = norm(solution(intcon) - round(solution(intcon)),Inf)
+        solution(intcon) = round(solution(intcon));
+        infeas1 = max(Aineq*solution - bineq)
+        infeas2 = norm(Aeq*solution - beq,Inf)
+        diffrounding = norm(fval - obj(:)'*solution,Inf)
+        solution1 = solution(1:P*F*W); % The continuous variables
+        solution2 = solution(intcon); % The integer variables
+        solution1 = reshape(solution1,P,F,W);
+        solution2 = reshape(solution2,S,W);
+        outlets = sum(solution2,1) % Sum over the sales outlets
+        figure(h);
+        hold on
+        for ii = 1:S
+            jj = find(solution2(ii,:)); % Index of warehouse associated with ii
+            xsales = xloc(F+W+ii); ysales = yloc(F+W+ii);
+            xwarehouse = xloc(F+jj); ywarehouse = yloc(F+jj);
+            if rand(1) < .5 % Draw y direction first half the time
+                plot([xsales,xsales,xwarehouse],[ysales,ywarehouse,ywarehouse],'g--')
+            else % Draw x direction first the rest of the time
+                plot([xsales,xwarehouse,xwarehouse],[ysales,ysales,ywarehouse],'g--')
+            end
+        end
+        hold off
+        title('Mapping of sales outlets to warehouses')
+        \end{lstlisting}
+

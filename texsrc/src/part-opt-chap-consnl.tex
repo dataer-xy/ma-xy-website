@@ -1,0 +1,829 @@
+% % \part{优化模型}
+% % \chapter{约束非线性规划}
+
+\chapter{约束非线性规划}
+\section{问题的引入与分析}
+    \par
+    前面介绍的是无约束非线性规划，如果我们在求最小化的过程中要求$x$满足一定的约束条件，则形成约束非线性规划问题。考虑如下含不等式约束的非线性优化问题
+    \begin{align*}
+    & \mathop {\min}\limits_x\  f(x)=x_1\exp(-(x_1^2+x_2^2))+(x_1^2+x_2^2)/20\\
+    & s.t. \quad xy/2+(x+2)^2+(y-2)^2/2 \leqslant 2
+    \end{align*}
+    其中：$x=(x_1,x_2) \in R^2$。
+    \par
+    Optimization Toolbox使用四种算法来求解约束非线性规划问题：
+    \ding{172}内点算法：特别适用于具有稀疏性或其他结构的大规模问题，它基于障碍函数，且在优化迭代过程中对于边界严格可行；
+    \ding{173}SQP算法；
+    \ding{174}动态序列算法；
+    \ding{175}信赖域反射算法：仅用于边界约束或线性等。在内点算法和信赖域反射算法中，对Hesse矩阵的近似：\\
+    (1)对内点法而言，可以通过以下方法来近似Hesse矩阵：\par
+    1)\ BFGS(稠密)；\par
+    2)有限内存BFGS(用于大规模问题)；\par
+    3)海赛 - 乘函数；\par
+    4)实际海赛矩阵(稀疏式稠密)；\par
+    5)有限差分法，但不要求预先知道稀疏性结构。\\
+    (2)对信赖域反射算法，可以通过以下方法来近似Hesse矩阵：\par
+    1)有限差分法；\par
+    2)实际海赛矩阵(稀疏式稠密)；\par
+    3)海赛 - 乘函数；\par
+    用MATLAB求解上面的问题，程序如下
+    \begin{lstlisting}[language=Matlab]
+    f = @(x,y) x.*exp(-x.^2-y.^2)+(x.^2+y.^2)/20;
+    g = @(x,y) x.*y/2+(x+2).^2+(y-2).^2/2-2;
+    ezplot(g,[-6,0,-1,7])
+    hold on
+    ezcontour(f,[-6,0,-1,7])
+    plot(-.9727,.4685,'ro');
+    legend('constraint','f contours','minimum');
+    hold off
+    x0 = [-2 1];
+    options = optimoptions('fmincon','Algorithm','interior-point','Display','iter');% 求解器fmincon使用内点算法（interior-point aligorithm），并打开每一次迭代的结果。
+    gfun = @(x) deal(g(x(1),x(2)),[]);% 求解要求非线性约束有两个：一个是非线性不等式，另一个是非线性等式。我们用deal函数写这个约束。
+    [x,fval,exitflag,output] = fmincon(fun,x0,[],[],[],[],[],[],gfun,options);
+    \end{lstlisting}
+\section{模型规范化及基本理论}
+    \par
+    我们将前面的引例规范化，写出约束非线性规划的一般形式
+    \begin{align*}
+    &\mathop {\min}\limits_{x\in R^n} \ f(x)\\
+    &s.t.\left\{
+    \begin{aligned}
+    &h_i(x)=0\quad i=1,2,\ldots,l\\
+    &g_j(x) \geqslant 0\quad j=1,2,\ldots,m
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$h_i(x),g_j(x)$为定义在$R^n$上的实值连续函数，$h_i(x)=0$是等式约束，$g_j(x) \geqslant 0$是不等式约束，$f$是目标函数。如果$m=0$，即不存在不等式约束，则称规划问题为非线性等式约束规划；如果$h_i(x),g_j(x)$为线性函数，则称为线性约束规划。进一步，如果一个线性约束规划的目标函数$f$为二次函数，则称为二次规划。二次规划是最简单的约束非线性规划问题。
+    \par
+    \ding{172}量的规定：
+    $x\in R^n$；
+    $f(x):R^n \to R$；
+    $h_i(x):R^n \to R$；
+    $g_j(x):R^n \to R$；
+    至于$f,h,g$的具体函数类型则有待进一步讨论，例：$f \in C^1(D)$或者$f \in C^{2}(D)$。
+    \par
+    \ding{173}解空间的定义(可行域)：满足约束$h_i(x)=0$和$g_j(x) \geqslant 0$的解$x$称为可行解，可行解集合称为可行域，记为$D=\{x|h_i(x)=0 \ \&\  g_j(x) \geqslant 0\}$。我们的目标是在$D$中求$x^*$使得$f$最小。
+    \par
+    \ding{174}解的定义(全局极小点，局部极小点)：\par
+    % 使$f$最小的解称为最优解，记为$x^*$。如果$x^*$是在$D$中取值，则称之为全局极小点；如果$x^*$仅在$D$的局部取值，则称为局部极小点。
+    \begin{definition}[全局极小点]
+    设$x^* \in D$，如果对$\forall x \in D$，有
+    \begin{align*}
+    f(x) \geqslant f(x^*)
+    \end{align*}
+    则称$x^*$为全局极小点。如果对$\forall x \in D,x \neq x^*$，有
+    \begin{align*}
+    f(x) > f(x^*)
+    \end{align*}
+    则称$x^*$为全局严格极小点。
+    \end{definition}
+    \begin{definition}[局部极小点]
+    设$x^* \in D$，如果$\exists \delta >0,\forall x \in D \cap N(x^*,\delta)$，有
+    \begin{align*}
+    f(x) \geqslant f(x^*)
+    \end{align*}
+    则称$x^*$为$x$的$\delta$局部极小点\footnote{注：在全局最优章节之前，我们讨论的$x^*$皆为局部极小点。}。其中：$N(x^*,\delta)=\{x\big|\|x-x^*\|_2 \leqslant \delta\}$。
+    如果对$\forall x \in D \cap N(x^*,\delta)/x^*$，有
+    \begin{align*}
+    f(x) > f(x^*)
+    \end{align*}
+    则称$x^*$为严格局部极小点。
+    \end{definition}
+    \par
+    毫无疑问，全局极小值$f(x^*) \leqslant \text{局部极小值}f(x^*)$，某种特殊情况下等式成立，这是有待讨论的。
+\section{解的存在性 - 最优性条件}
+    \par
+    假设$f,h_i,g_j$都是连续可微的。仅依据局部极小点的定义来判断一个$x$是否为$x^*$是困难的，因此，我们有必要给出极小点存在的充分必要条件，以方便计算极小点。
+    \par
+    我们先给出只有等式约束$h_i(x)=0$时解的最优性条件，然后再讨论不等式约束$g_j(x) \geqslant 0$，最终将二者结合。这样做的理由是：等式约束是相对易于处理的，并且在数学分析中，我们也学过条件极值和拉格朗日乘数法。
+    \subsection{等式约束的最优化条件}
+        \par
+        考虑如下等式约束规划问题
+        \begin{align}
+        \label{eq等式约束规划问题}
+        &\mathop {\min}\limits_{x\in R^n}\  f(x)\\
+        &s.t.\quad h_i(x)=0\quad i=1,2,\ldots,l\notag
+        \end{align}
+        我们用拉格朗日函数处理上述等式约束极值问题，做Largrange函数
+        \begin{align*}
+        L(x,\lambda)=f(x)-\mathop {\sum}\limits_{i=1}^l{\lambda}_i h_i(x)=\lambda^\mathrm{T}h(x)
+        \end{align*}
+        其中：$\lambda=({\lambda}_1,{\lambda}_2,\ldots,{\lambda}_l)^\mathrm{T} $为拉格朗日乘子。
+        \paragraph{一阶必要条件}
+        设$x^*$是问题(\ref{eq等式约束规划问题})的局部极小点，$f,h_i$在$x^*$的某邻域内连续可微，若向量组$\nabla h_i(x^*)$线性无关，则$\exists {\lambda}^*=({\lambda}_1^*,{\lambda}_2^*,\ldots,{\lambda}_l^*)^\mathrm{T} $使得
+        \begin{align*}
+        {\nabla}_xL(x^*,{\lambda}^*)=0
+        \end{align*}
+        即
+        \begin{align*}
+        \nabla f(x^*) - \sum_{i=1}^l\lambda_i^*\nabla h_i(x^*) = 0
+        \end{align*}
+        \paragraph{二阶充分条件}
+        定义$L(x,\lambda)$的梯度以及关于$x$的Hesse矩阵
+        \begin{align*}
+        \nabla L(x,\lambda)=\bigg(\begin{aligned}{\nabla}_x L(x,\lambda)\\
+        {\nabla}_{\lambda} L(x,\lambda)
+        \end{aligned}\bigg)
+        =
+        \begin{pmatrix}
+        \nabla f(x)-\mathop {\sum}\limits_{i=1}^l{\lambda}_i \nabla h_i(x)\\
+        -h(x)
+        \end{pmatrix}
+        \end{align*}
+        \begin{align*}
+        {\nabla}_{xx}^2L(x,\lambda)={\nabla}^2f(x)-\mathop {\sum}\limits_{i=1}^l{\lambda}_i {\nabla}^2 h_i(x)\triangleq G
+        \end{align*}
+        设$f,h_i$是二阶连续可微，并$\exists(x^*,{\lambda}^*) \in R^n\times R^l$使$\nabla L(x^*,{\lambda}^*)=0$。若$\forall d \in R^n/0$，$\nabla h_i(x^*)^\mathrm{T} d=0$，有$d^\mathrm{T} {\nabla}_{xx}^2L(x^*,\lambda)d>0$，则$x^*$是优化问题的一个严格局部极小点。
+    \subsection{不等式约束问题的最优性条件}
+        \par
+        考虑如下不等式约束优化问题
+        \begin{align*}
+        & \min_{x\in R^n}\ f(x)\\
+        & s.t.\quad g_j(x) \geqslant 0\quad j=1,2,\ldots,m
+        \end{align*}
+        记可行域为$D=\{x|g_j(x) \geqslant 0\}$，指标集$I=\{1,2,\ldots,m\}$。对于某一个可行点$x \in D$而言，其s.t.会有两种情况：有些约束是$g_j(x)=0$，另一些约束是$g_j(x)>0$。对于后一种情形，在$x$的某个邻域内仍然保持$g_j(x)>0$成立，而前者不具备这种性质。因此，我们将二者分开，定义积极集：
+        \begin{definition}[积极集]
+        若某个可行点$x \in D$，使得$g_j(x)=0,j\in I$，则称不等式约束$g_j(x) \geqslant 0$为$x$的有效约束，称集合$I(x)=\{j:g_j(x)=0\}$为$x$处的有效约束指标集。
+        \end{definition}
+        \par
+        给出上述问题的广义拉格朗日函数
+        \begin{align*}
+        L(x,\mu)=f(x)-{\mu}^\mathrm{T} g(x)=f(x)-\mathop {\sum}\limits_{j=1}^m \mu_j g_j(x)
+        \end{align*}
+        其中：$\mu= (\mu_1,\dots,\mu_m)$为广义拉格朗日乘子。
+        \paragraph{一阶必要条件(KKT条件或KT条件)}
+        设$x^*$为极小点，有效约束指标集$I(x^*)=\{j|g_j(x^*)=0,j \in I\}$，假设$f,g_j$在$x^*$处可微，若向量组${\nabla}{g_j}(x^*),j \in I(x^*)$线性无关，则$\exists {\mu}^*=({\mu}_1^*,{\mu}_2^*,\ldots,{mu}_m^*)^\mathrm{T} $使得
+        \begin{align*}
+        \left \{
+        \begin{aligned}
+        & \nabla f(x^*)-\mathop {\sum}\limits_{j=1}^m {\mu}^*_i{\nabla}{g_j}(x^*)=0\\
+        & g_j(x^*) \geqslant 0\\
+        & {\mu}^*_j \geqslant 0\\
+        & {\mu}^*_j g_j(x^*)=0
+        \end{aligned}
+        \right.
+        \end{align*}
+        \par
+        反过来，如果$\exists x^* \in D,{\mu}^* \in R^m$使得上述KKT条件成立，则$x^*$为最优化问题的K-T点。由上述必要性易知，极小点$\Rightarrow$K-T点，但K-T点$\nRightarrow$极小点。
+        \par
+        由于KKT条件是1951年Kuhn和Tucher给出，故它常被称为K-T条件。同时，1939年Karush也类似地考虑了约束的最优性条件，所以也被称为K-K-T条件(Karush-Kuhn-Tucher定理)。
+    \subsection{一般约束问题的最优性条件}
+        \par
+        上面，我们将等式约束和不等式约束分开讨论，下面来讨论如下一般约束最优问题
+        \begin{align*}
+        &\mathop {\min}\limits_{x\in R^n} \ f(x)\\
+        &s.t.\left\{
+        \begin{aligned}
+        &h_i(x)=0\quad i=1,2,\ldots,l\\
+        &g_j(x) \geqslant 0\quad j=1,2,\ldots,m
+        \end{aligned}
+        \right.
+        \end{align*}
+        记指标集$E=\{1,2,\ldots,l\},I=\{1,2,\ldots,m\},i \in E,j \in I$，可行域为$D=\{x \in R^n|h_i(x)=0,g_j(x) \geqslant 0,\forall i \in E,j \in I\}$。
+        \par
+        定义上述优化问题的广义拉格朗日函数为
+        \begin{align*}
+        L(x,\lambda,\mu)=f(x)-\mathop {\sum}\limits_{i=1}^l {\lambda}_ih_i(x)-\mathop {\sum}\limits_{j=1}^m {\mu}_jg_j(x)
+        \end{align*}
+        其中：$\mu ,\lambda$为广义拉格朗日乘子。
+        \paragraph{一阶必要条件(KKT条件)}
+        设$x^*$是局部极小点，在$x^*$处的有效约束集为
+        \begin{align*}
+        s(x^*)=E\cup I(x^*)=E\cup\{j|g_j(x^*)=0,i\in I\}
+        \end{align*}
+        并假设$f,h_i,g_j$在$x$处可微。若向量组$\nabla h_i(x^*),\nabla g_j(x^*),j \in I(x^*)$线性无关，则存在向量$({\lambda}^*,{\mu}^*) \in R^l\times R^m$，得到
+        \begin{align*}
+        \left \{
+        \begin{aligned}
+        & \nabla f(x^*)-\mathop {\sum}\limits_{i=1}^l {\lambda}^*_i{\nabla}{h_i}(x^*)-\mathop {\sum}\limits_{j=1}^m {\mu}^*_j{\nabla}{g_j}(x^*)=0\\
+        & h_i(x^*)=0,i \in E\\
+        & g_j(x^*) \geqslant 0\\
+        & {\mu}^*_j \geqslant 0\\
+        & {\mu}^*_j g_j(x^*)=0,j \in I
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$\mu ,\lambda$为广义拉格朗日乘子。称${\mu}_j^*g_j(x^*)=0(j \in I(x^*))$为互补松弛条件。这意味着${\mu}_j^*,g_j(x^*)$中至少有一个必为0。
+        \par
+        定义广义拉格朗日函数$L$关于$x$的梯度和Hesse矩阵为
+        \begin{align*}
+        & {\nabla}_{x}L(x,\lambda,\mu)={\nabla}f(x)-\mathop {\sum}\limits_{i=1}^l{\lambda}_i {\nabla} h_i(x)-\mathop {\sum}\limits_{j=1}^m{\mu}_j {\nabla} g_j(x)\\
+        & {\nabla}_{xx}L(x,\lambda,\mu)={\nabla}^2f(x)-\mathop {\sum}\limits_{i=1}^l{\lambda}_i {\nabla}^2 h_i(x)-\mathop {\sum}\limits_{j=1}^m{\mu}_j {\nabla} g_j^2(x)
+        \end{align*}
+        \paragraph{二阶充分条件}
+        假设$f,g,h$是二阶连续可微的，设$(x^*,({\mu}^*,{\lambda}^*))$是优化问题的一个KKT点(即$(x^*,({\mu}^*,{\lambda}^*))$满足KKT条件)，若$\forall d \in R^n/0$，$\nabla g_j(x^*)^\mathrm{T} d=0(j \in I(x^*))$，$\nabla h_i(x^*)^\mathrm{T} d=0(i \in E)$均有$d^\mathrm{T} {\nabla}_{xx}L(x^*,{\lambda}^*,{\mu}^*)d>0$，则$x^*$是一个严格局部极小点。
+        \par
+        由一阶必要条件，我们知道，优化问题的KKT点不一定是局部极小点，但如果优化问题是一个凸优化问题，则KKT点$\equiv$局部极小点$\equiv$全局极小点。
+        凸优化是如下优化问题
+        \begin{align*}
+        &\mathop {\min}\limits_{x\in R^n} f(x)\\
+        &s.t.\left\{
+        \begin{aligned}
+        &h_i(x)=0\quad i=1,2,\ldots,l\\
+        &g_j(x) \geqslant 0\quad j=1,2,\ldots,m
+        \end{aligned}
+        \right.
+        \end{align*}
+        如果$f$是凸函数，$h_i(x)$是线性函数(仿射函数)，$g_j(x)$是凹函数(即$-g_j(x)$是凸函数)，那么该优化问题为凸优化。\\
+\section{对偶问题与鞍点}
+    \par
+    考虑如下约束非线性规划问题
+    \begin{align*}
+    &\mathop {\min}\limits_{x\in R^n}\  f(x)\\
+    &s.t.\left\{
+    \begin{aligned}
+    &h_i(x)=0\quad i \in E\\
+    &g_j(x) \geqslant 0\quad j \in I
+    \end{aligned}
+    \right.
+    \end{align*}
+    称上述问题为此非线性规划的原始问题(PNLP)，相对的对偶问题(DNLP)定义如下
+    \begin{align*}
+    & \max\  \theta(\lambda,\mu)=\inf L(x,\lambda,\mu)=\inf\{f(x)-\lambda^\mathrm{T}h(x) -\mu^\mathrm{T}g(x) |x \in D\}\\
+    & s.t.\quad \mu \geqslant 0
+    \end{align*}
+    其中：$\theta(\lambda,\mu)$称为原问题的拉格朗日对偶函数。此外，如果设原问题和对偶问题的可行域分别为$D$和$\Delta$，相应的拉格朗日函数为
+    \begin{align*}
+    L(x,\lambda,\mu)=f(x)-\lambda^\mathrm{T}h(x) -\mu^\mathrm{T}g(x)  ,\quad x \in D,\mu \in R_+^m,\lambda \in R^l
+    \end{align*}
+    亦可记$m=|I|,l=|E|$。值得指出的是，对$\forall x \in D$，拉格朗日函数$L(x,\lambda,\mu)$是$\lambda,\mu$的线性函数，于是，拉格朗日对偶函数$\theta(\lambda,\mu)$作为线性函数的逐点下确界，必然是一个凹函数。这说明上述对偶问题是一个凸规划问题。
+    \par
+    上面，我们给出了对偶问题的定义，需要明确的是：原始问题的最优值是否等于对偶问题的最优值呢？即$\mathop {\min}\limits_{x \in s}f(x)=\mathop {\max}\limits_{(\lambda,\mu) \in \Delta }\theta(\lambda,\mu)$？
+    \subsection{弱对偶定理}
+        \par
+        设$x \in D,(\lambda,\mu) \in \Delta$分别为原问题和对偶问题的可行解，则
+        \begin{align*}
+        f(x) \geqslant \theta(\lambda,\mu)
+        \end{align*}
+        对于原问题(PNLP)和对偶问题(DNLP)，下面3个结论成立：\par
+        1)若$D \neq \phi,\Delta \neq \phi$，则
+        \begin{align*}
+        f_{min} = \inf\{f(x)|x \in D\} \geqslant {\theta}_{max}=\sup\{\theta(\lambda,\mu)|(\lambda,\mu) \in \Delta\}
+        \end{align*}
+        \par
+        2)若$\exists x^* \in D$和$({\lambda}^*,{\mu}^*)\in \Delta$，使得$f(x^*)\leqslant \theta({\lambda}^*,{\mu}^*)$，则$x^*$和$({\lambda}^*,{\mu}^*)$的解为原问题和对偶问题的最优解。
+        \par
+        3)若$f_{min}=-\infty$，则$\theta(\lambda,\mu) \in \Delta,\theta(\lambda,\mu)=-\infty$。若${\theta}_{max}=+\infty$，则原问题没有可行解。
+        \par
+        对于一般问题，我们知道$\delta=f_{min}-{\theta}_{max} \neq 0$，下面，我们讨论在什么条件下$\delta = 0$？
+
+    \subsection{强对偶定理}
+        \begin{definition}[slater约束规格]
+        对于凸优化来说，若相对内点的集合$riS=\{x|h(x)=0,g(x)>0,x\in D\}\neq \phi$，则称约束函数满足slater约束规格。
+        \end{definition}
+        \par
+        对于凸优化而言，假设$D$为非空的凸开集，$f$为凸函数，$g_j(j\in I)$为凹函数，$h_i(i\in E)$为线性函数。若函数$g,h$满足slater约束规格，则
+        \begin{align*}
+        f_{min} := \inf\{f(x)|x \in D\} =\sup\{\theta(\lambda,\mu)|(\lambda,\mu) \in \Delta\}=:{\theta}_{max}
+        \end{align*}
+        此外，若$f_{min}>-\infty$，则$\exists ({\lambda}^*,{\mu}^*)\in \Delta$，使得$\theta({\lambda}^*,{\mu}^*)={\theta}_{max}$。特别地，若存在$x^* \in s$，使$f(x^*)=f_{min}$，则互补松弛条件${\lambda}^{*T}g(x^*)=0$成立。
+    \subsection{鞍点定理}
+        \par
+        下面介绍鞍点的定义以及鞍点与KKT点、最优解之间的关系。
+        \begin{definition}[鞍点]
+        \par
+        设$L(x,\lambda,\mu)$是原问题的拉格朗日函数，如果$\exists (x^*,{\lambda}^*,{\mu}^*)\in D\times R^{|E|}\times R_+^{|I|}$，使得对$\forall(x,\lambda,\mu)$，有
+        \begin{align*}
+        L(x^*,{\lambda},{\mu}) \leqslant L(x^*,{\lambda}^*,{\mu}^*) \leqslant L(x,{\lambda}^*,{\mu}^*)
+        \end{align*}
+        则称$(x^*,{\lambda}^*,{\mu}^*)$为函数$L(x,\lambda,\mu)$的一个鞍点(saddle point)。
+        \end{definition}
+        \subsubsection{鞍点与最优点}
+            \par
+            在一般情况下，鞍点的存在性并不是最优解存在的必要条件，但是，如果鞍点存在的话，它一定是约束优化问题原问题的最优解。
+            \par
+            1)设$(x^*,{\lambda}^*,{\mu}^*)$是原问题的拉格朗日函数$L(x,\lambda,\mu)$的鞍点，则$x^*$和$({\lambda}^*,{\mu}^*)$分别是原问题和对偶问题的最优解。
+            \par
+            2)如果原问题为凸优化问题，$x^*$为最优解，并且$g_j(x),h_i(x)$满足slater约束规格，则$\exists {\lambda}^* ,{\mu}^*\geqslant 0$，使得$(x^*,{\lambda}^*,{\mu}^*)$是原问题的拉格朗日函数的鞍点。
+        \subsubsection{鞍点与KKT点}
+            \par
+            假设原问题(PNLP)中的$f,g,h$在包含可行域$D$的开集$D$内连续可微，那么：
+            \par
+            1)若$(x^*,{\lambda}^*,{\mu}^*)\in D\times R_+^{|I|}\times R^{|E|}$是原问题的拉格朗日函数$L(x,\lambda,\mu)$的鞍点，则$(x^*,{\lambda}^*,{\mu}^*)$是原问题(PNLP)的一个KKT点对。
+            \par
+            2)若原问题是一个凸规划，并且$(x^*,{\lambda}^*,{\mu}^*)$是原问题的一个KKT点，则$(x^*,{\lambda}^*,{\mu}^*)$是原问题的拉格朗日函数的鞍点。
+\section{最优化算法}
+    \subsection{外罚函数法}
+        \par
+        罚函数的基本思想：根据约束条件的特点，将其转化为某种罚函数加到目标函数中去，从而将约束优化问题转化为无约束优化问题来求解。下面，我们来介绍一种罚函数方法 - 外罚函数法，也称外点法。
+        \par
+        考虑如下一般的约束优化问题
+        \begin{align*}
+        &\mathop {\min}\limits_{x\in R^n}\  f(x)\\
+        &s.t.\left\{
+        \begin{aligned}
+        &h_i(x)=0\quad i \in E\\
+        &g_j(x) \geqslant 0\quad j \in I
+        \end{aligned}
+        \right.
+        \end{align*}
+        记可行域为$D=\{x|h_i(x)=0,g_j(x) \geqslant 0\},|E|=l,|I|=m$，构造罚函数
+        \begin{align*}
+        \bar{p}(x)=\mathop {\sum}\limits_{i=1}^lh_i^2(x) + \mathop {\sum}\limits_{j=1}^m[min\{0,g_j(x)\}]^2
+        \end{align*}
+        将罚函数$\bar{p}(x)$增加到目标中，构建新的目标函数
+        \begin{align*}
+        p(x,\sigma)=f(x)+\sigma \bar{p}(x)
+        \end{align*}
+        其中：$\sigma$为罚权重，$\sigma >0$。
+        不难发现，当$x \in D$时，$\min f(x) \triangleq \min p(x,\sigma)$；当$x \notin D$时，$p(x,\sigma)>f(x)$，$\sigma$越大，$p$越大，当$\sigma$足够大时，要使$p$达到极小，罚函数$\bar{p}(x)$要充分小才可以，从而$p(x,\sigma)$的极小点充分逼近可行域$D$，因此，最优化问题等价于
+        \begin{align*}
+        \mathop {\min}\limits_{x \in R^n}p(x|{\sigma}_k)=f(x)+{\sigma}_k\bar{p}(x)
+        \end{align*}
+        其中：${\sigma}_k$为第$k$次迭代的罚权重，${\sigma}_k>0$，且${\sigma}_k \to +\infty$。
+        \par
+        由上述思想可知：$x(\sigma)$是从可行域$D$的外部来趋近于$x^*$，因此上述罚函数也称为外罚函数/外点法。(问：如何确定初点$x_0 \notin D$)。上述思路有一些缺点：\ding{172}当${\sigma}_k$较大时，$p(x,{\sigma}_k)$的Hesse矩阵的条件数很大，在数值上求解不易。\ding{173}$\bar{p}(x)$一般不可微，因此，不易于直接采用导数求解方法。
+    \subsection{内罚函数法 - 内点法}
+        \par
+        (1)对于只有不等式约束的优化问题
+        \begin{align*}
+        &\mathop {\min}\limits_{x\in R^n}\  f(x)\\
+        &s.t.\quad g_j(x) \geqslant 0\quad j \in I
+        \end{align*}
+        内点法的基本思想是：保持每一个迭代点$x_k$都在可行域$D$内，可行域的边界被筑起一道很高的“围墙”作为障碍。当迭代点$x_k$靠近边界时，增广目标函数值骤然增大，以示“惩罚”，并阻止迭代点窜越边界。因此，内点法也称为内罚函数法或障碍函数法。它只适用于可行域内点集非空的情形。
+        \par
+        类似于外罚函数法，我们构造增广目标函数
+        \begin{align*}
+        H(x,\tau)=f(x)+\tau \bar{H}(x)
+        \end{align*}
+        其中；$\bar{H}(x)$为障碍函数。当$x \in D$，至少有一个$g_j(x)$趋近于0，而$\bar{H}(x)$趋近于无穷大。因此，可取约束函数倒数之和为障碍函数
+        \begin{align*}
+        \bar{H}(x)=\mathop {\sum}\limits_{j=1}^m \frac{1}{g_j(x)}
+        \end{align*}
+        或者反对数障碍函数
+        \begin{align*}
+        \bar{H}(x)=-\mathop {\sum}\limits_{j=1}^m \ln(g_j(x))
+        \end{align*}
+        $\tau>0$为罚权重，$\tau_k \to 0(k \to \infty)$。于是，约束优化问题转化为无约束优化问题
+        \begin{align*}
+        \mathop {\min}\limits_{x}\ H(x,\tau)=f(x)+\tau \bar{H}(x)
+        \end{align*}
+        问：如何确定初始点$x \in D$？
+        \par
+        (2)如果约束中存在等式约束，我们可以将外罚函数法和内罚函数法相结合，构建增广目标函数
+        \begin{align*}
+        H(x,\mu)=f(x)+\frac{1}{2\mu}\mathop {\sum}\limits_{i=1}^l h_i^2(x)+\mu\mathop {\sum}\limits_{j=1}^m \frac{1}{g_j(x)}
+        \end{align*}
+        或者
+        \begin{align*}
+        H(x,\mu)=f(x)+\frac{1}{2\mu}\mathop {\sum}\limits_{i=1}^l h_i^2(x)-\mu\mathop {\sum}\limits_{j=1}^m \ln[{g_j(x)}]
+        \end{align*}
+        另外，我们还可以引入松弛变量${\xi}_j,j=1,2,\ldots,m$，将原问题转化为
+        \begin{align*}
+        &\mathop {\min}\  f(x)\\
+        &s.t.\left\{
+        \begin{aligned}
+        &h_i(x)=0\quad i=1,2,\ldots,l\\
+        &g_j(x)-{\xi}_j = 0\quad j=1,2,\ldots,m\\
+        &{\xi}_j\quad j=1,2,\ldots,m
+        \end{aligned}
+        \right.
+        \end{align*}
+        然后构建混合增广目标函数
+        \begin{align*}
+        \varphi(x,\xi,\mu)=f(x)+\frac{1}{2\mu}\mathop {\sum}\limits_{i=1}^l h_i^2(x)+\frac{1}{2\mu}\mathop {\sum}\limits_{j=1}^m [{g_j(x)}-{\xi}_j]^2+\mu\mathop {\sum}\limits_{j=1}^m \frac {1}{{\xi}_j}
+        \end{align*}
+    \subsection{乘子法}
+        \par
+        乘子法是Povell和Hestenes于1969年针对等式约束问题同时独立提出的。Rockfellar于1973年将该方法推广到不等式约束优化中。其基本思想是：从原问题的拉格朗日函数出发，再加上适应的罚函数，从而将原问题转化为一个无约束优化问题。
+        \par
+        先只考虑等式约束优化问题
+        \begin{align*}
+        &\mathop {\min}\  f(x)\\
+        &s.t.\quad h_i(x) = 0\quad i \in E
+        \end{align*}
+        作上述问题的拉格朗日函数
+        \begin{align*}
+        L(x,\lambda)=f(x)-{\lambda}^\mathrm{T}  h(x)
+        \end{align*}
+        其中：${\lambda}^\mathrm{T} =({\lambda}_1,{\lambda}_2,\ldots,{\lambda}_l)^\mathrm{T} $为Lagrange乘子向量。$h(x)=(h_1(x),h_2(x),\ldots,h_l(x))^\mathrm{T} $。
+        \par
+        设$(x^*,{\lambda}^*)$是原问题的KKT点，则由最优性条件，有
+        \begin{align*}
+        & {\nabla}_xL(x^*,{\lambda}^*)=0\\
+        & {\nabla}_{\lambda}L(x^*,{\lambda}^*)=-h(x^*)=0
+        \end{align*}
+        此外，对$\forall x \in D$，有
+        \begin{align*}
+        L(x^*,{\lambda}^*)=f(x^*) \leqslant f(x)-({\lambda}^*)^\mathrm{T} h(x)=L(x,{\lambda}^*)
+        \end{align*}
+        上式表明，如果已知${\lambda}^*$，则原问题等价于
+        \begin{align*}
+        &\mathop {\min}\ L(x,{\lambda}^*)\\
+        &s.t.\quad h(x) = 0
+        \end{align*}
+        可以考虑用外罚函数法求解上述问题，其增广目标函数为
+        \begin{align*}
+        \varphi(x,{\lambda}^*,\sigma)=L(x,{\lambda}^*)+\frac{\sigma}{2}\|h(x)\|^2
+        \end{align*}
+        但${\lambda}^*$事先并不知道，故可以考虑如下增广目标函数
+        \begin{align*}
+        \varphi(x,{\lambda},\sigma)&=L(x,{\lambda})+\frac{\sigma}{2}\|h(x)\|^2\\
+        &=f(x)-{\lambda}^\mathrm{T} h(x)+\frac{\sigma}{2}\|h(x)\|^2
+        \end{align*}
+        我们求$\mathop {\min}\ \varphi(x,{\lambda},\sigma)$。首先固定一个$\lambda=\bar{\lambda}$，求$\varphi(x,\bar{\lambda},\sigma)$的极小点$\bar{x}$；然后再适当改变$\lambda$的取值，再求新的$\bar{x}$，直到求得满意的$x^*,{\lambda}^*$为止。
+        \par
+        具体而言，我们在第$k$次迭代求无约束的问题$\mathop {\min}\ \varphi(x,{\lambda}_k,\sigma)$的极小点$x_k$时，其取极值的必要条件为
+        \begin{align*}
+        {\nabla}_x\varphi(x_k,{\lambda}_k,{\sigma})={\nabla}f(x_k)-{\nabla}h(x_k)[{\lambda}_k-{\sigma}h(x_k)]=0
+        \end{align*}
+        而在原问题的KKT点$(x^*,{\lambda}^*)$处，有
+        \begin{align*}
+        {\nabla}f(x^*)-\nabla h(x^*){\lambda}^*=0\quad h(x^*)=0
+        \end{align*}
+        我们自然是希望$\{x_k\} \to x^*,\{{\lambda}_k\} \to {\lambda}^*$，于是，可以取${\lambda}^*$的更新公式为
+        \begin{align*}
+        {\lambda}_{k+1}={\lambda}_k-{\sigma}h(x_k)
+        \end{align*}
+        且$\{h(x_k)\} \to 0$是$\{{\lambda}_k\}$收敛的充要条件，也是$(x_k,{\lambda}_k)$为KKT对的充要条件。
+        \par
+        上面讨论的是只含有等式约束的优化问题，如果含有不等式约束，我们可以引入松弛变量${\xi}_j$以进行转化。一般约束最优化的增广Lagrange函数为
+        \begin{align*}
+        L(x,\lambda,\mu)&=f(x)+\frac{1}{2\mu}\mathop {\sum}\limits_{j \in I}\left( \mathop{\min}{}^2\{\mu g_j(x)-{\lambda}_j,0\}-{\lambda}_j^2 \right)  \\
+        &\quad -\mathop {\sum}\limits_{i \in E}{\lambda}_ih_i(x)+ \frac {1}{2}\mu\mathop {\sum}\limits_{i \in E}h_i^2(x)
+        \end{align*}
+        相应的Lagrange乘子迭代格式为
+        \begin{align*}
+        {\lambda}_i^{+} = \left\{
+        \begin{aligned}
+        &{\lambda}_i-\mu h_i(x)\quad i \in E\\
+        &\mathop {\max}\{{\lambda}_j-\mu g_j(x),0\}\quad j\in I
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$x,\mu,\lambda$为当前迭代值，${\lambda}_i^{+}$表示下一次迭代值。
+        \par
+        给出一般的乘子法算法流程：\\
+        \textbf{step1.}初始化。
+        $x_0 \in R^n$，初始乘子向量${\lambda}_0$，罚参数序列$\{{\mu}_k\}$，容许误差$\varepsilon > 0,k:=0$。\\
+        \textbf{step2.}构建增广Lagrange函数$L(x,\lambda,\mu)$。\\
+        \textbf{step3.}以$x_{k-1}$作为初始点($k=0$时，初始点任意)，求无约束优化
+        \begin{align*}
+         \mathop {\min}\limits_{x \in R^n}\ L(x,{\mu}_k,{\lambda}_k)
+        \end{align*}
+        解得$x_k$。\\
+        \textbf{step4.}若
+        \begin{align*}
+         \|h(x_k)\|+\|{\min}\{g(x_k),{\mu}_k^{-1}{\lambda}_k\}\| \leqslant \varepsilon
+        \end{align*}
+        则解得$x_k$，否则转到step5。\\
+        \textbf{step5.}更新${\lambda}_k$。令$x:=x_k,\lambda:={\lambda}_k$，由${\lambda}_i^+ $更新公式得到${\lambda}_{k+1}$，转至step2。
+    \subsection{SQP方法(序列二次规划方法)}
+        \par
+        SQP(sequential quadratic programing)是求解约束优化问题最有效的算法之一。其基本思想是：在每一次迭代步通过求解一个二次规划子问题来确定一个下降方向。然后，以减少价值函数来取得步长，重复这些步骤直到收敛。
+        \subsubsection{Newton - Lagrange方法}
+            \par
+            先来考虑等式约束
+            \begin{align*}
+            &\mathop {\min}\limits_{x\in R^n} \ f(x)\\
+            &s.t.\quad h(x) = 0
+            \end{align*}
+            其中：$f:R^n \to R,h_i:R^n \to R,h(x)=(h_1(x),h_2(x),\ldots,h_l(x))^\mathrm{T} ,E=\{1,2,\ldots,l\},|E|=l$。设$f,h_i$为二阶连续可微函数。
+            \par
+            写出原问题的Lagrange函数
+            \begin{align*}
+            L(x,\mu)=f(x)-{\mu}^\mathrm{T}  h(x)
+            \end{align*}
+            记约束$h$的梯度矩阵为
+            \begin{align*}
+            \nabla h(x)=(\nabla h_1(x),\nabla h_2(x),\ldots,\nabla h_l(x))
+            \end{align*}
+            $h$的Jacobi矩阵为$A(x)=\nabla h(x)^\mathrm{T} $。根据原问题的KKT条件，可得到如下方程组
+            \begin{align}
+            \label{eqSQP方法1}
+            \nabla L(x,\mu)=\bigg(\begin{aligned}{\nabla}_x L(x,\mu)\\
+            {\nabla}_{\mu} L(x,\mu)\end{aligned}\bigg)
+            =
+            \begin{pmatrix}
+            \nabla f(x)-A(x)^\mathrm{T} {\mu}\\
+            -h(x)
+            \end{pmatrix}
+            =0
+            \end{align}
+            若$A(x^*)$行满秩，则原问题的最优解$(x^*,{\mu}^*)$必然满足上述非线性方程(\ref{eqSQP方法1})。由于KKT条件为Lagrange函数平稳点的条件，所以人们通常把基于求解上述非线性方程的优化方法称为Lagrange方法。特别地，如果使用Newton方法求解上述方程组，那么相应的优化方法称为Newton-Lagrange方法。
+            \par
+            现在用牛顿法求解上述的非线性方程组(\ref{eqSQP方法1})。记函数$\nabla L(x,\mu)$的Jacobi矩阵为
+            \begin{align*}
+            N(x,\mu)=\bigg[\begin{matrix}& G(x,\mu)\quad & -A(x)^\mathrm{T} \\
+            & -A(x)\quad & 0\end{matrix}\bigg]
+            \end{align*}
+            其中：
+            \begin{align*}
+            G(x,\mu)={\nabla}_{xx}^2L(x,\mu)={\nabla}^2f(x)-\mathop {\sum}\limits_{i=1}^l{\mu}_i {\nabla}^2 h_i(x)
+            \end{align*}
+            为Lagrange函数$L(x,\mu)$关于$x$的Hesse矩阵。
+            \par
+            对于给定的点$(x^*,{\mu}^*)$，牛顿法的迭代公式为
+            \begin{align*}
+            \bigg(\begin{aligned}x^{k+1}\\{\mu}^{k+1}\end{aligned}\bigg)=\bigg(\begin{matrix}x_k^k\\
+            {\mu}_k^k\end{matrix}\bigg)+p_k^k
+            \end{align*}
+            其中：$p_k^k=(p_x^k,p_{\mu}^k)^\mathrm{T} $为牛顿方向，满足方程
+            \begin{align*}
+            N(x^{k},{\mu}^k)p^k=-\nabla L(x^{k},{\mu}^k)
+            \end{align*}
+            即
+            \begin{align*}
+            \bigg[\begin{matrix}& G_k\quad & -A_k^\mathrm{T} \\
+            & -A_k\quad & 0\end{matrix}\bigg]\bigg(\begin{matrix}p_x^k\\p_{\mu}^k\end{matrix}\bigg)=\bigg(\begin{matrix}& -\nabla f(x_k)+A(x_k)^\mathrm{T} {\mu}_k\\& h(x_k)\end{matrix}\bigg)
+            \end{align*}
+            其中：$G_k=G(x^k,{\mu}^k)$。如果下面条件成立，那么上述方程的系数矩阵非奇异，并且该方程有唯一解。
+            \par
+            假设约束函数$h$在$x^k$的Jacobi矩阵$A_k$行满秩；假设矩阵$g_k$在约束函数$h$的切空间$N(A_k)$上是正定的，即$\forall d \in N(A_k)/\{0\},d^\mathrm{T} w_kd>0$，则N-L方法具有局部二次收敛性质。但由于每一次迭代均求解非线性方程组，导致数值上的不稳定。鉴于这种不稳定性，所以将其转化为一个严格凸二次规划问题。转化的条件是原问题的解点$x^*$处最优化二阶充分条件成立，即对满足$A(x^*)^\mathrm{T} d=0$的任一非零向量$d$，有
+            \begin{align*}
+            d^\mathrm{T} G(x^*,{\mu}^*)d>0
+            \end{align*}
+            这时，当$\tau >0$充分小时，有
+            \begin{align*}
+            G(x^*,{\mu}^*)+\frac{1}{2\tau}A(x^*)^\mathrm{T} A(x^*)
+            \end{align*}
+            正定。考虑将方程组(\ref{eqSQP方法1})中的$G(x_k,{\mu}_k)$用一个正定矩阵来代替，记
+            \begin{align*}
+            B(x_k,{\mu}_k)=G(x^*,{\mu}^*)+\frac{1}{2\tau}A(x_k)^\mathrm{T} A(x_k)
+            \end{align*}
+            则当$(x_k,{\mu}_k) \to (x^*,{\mu}^*)$时，矩阵$B(x^*,{\mu}^*)$正定。注意到(\ref{eqSQP方法1})方程组的展开式为
+            \begin{align*}
+            G(x_k,{\mu}_k)d_k-A(x_k)^\mathrm{T} v_k=-\nabla f(x_k)+A(x_k)^\mathrm{T} {\mu}_k
+            \end{align*}
+            将上式变形为
+            \begin{align*}
+            [G(x_k,{\mu}_k)+\frac{1}{2\tau}A(x_k)^\mathrm{T} A(x_k)]d_k-A(x_k)^\mathrm{T} \left[ {\mu}_k+v_k+\frac{1}{2\tau}A(x_k)d_k \right]=-\nabla f(x_k)
+            \end{align*}
+            令
+            \begin{align*}
+            {\bar{\mu}}_k:={\mu}_k+v_k+\frac{1}{2\tau}A(x_k)d_k
+            \end{align*}
+            即得
+            \begin{align*}
+            B(x_k,{\mu}_k)d_k-A(x_k)^\mathrm{T} {\bar{\mu}}_k=-\nabla f(x_k)
+            \end{align*}
+            因此，方程组(\ref{eqSQP方法1})等价于
+            \begin{align*}
+            \bigg[\begin{matrix}& B(x_k,{\mu}_k)\quad & -A(x_k)^\mathrm{T} \\
+            & -A(x_k)\quad & 0\end{matrix}\bigg]\bigg[\begin{matrix}d_k\\{\bar{\mu}}_k\end{matrix}\bigg]=-\bigg[\begin{matrix}\nabla f(x_k)\\h(x_k)\end{matrix}\bigg]
+            \end{align*}
+            进一步，可以将上述方程转化为严格凸二次规划
+            \begin{align}
+            \label{eqSQP方法2}
+            & \mathop {\min}\limits_d \ q_k(d)=\frac{1}{2}d^\mathrm{T} B(x_k,{\mu}_k)d+\nabla f(x_k)^\mathrm{T} d\\
+            & s.t.\quad h(x_k)+A(x_k)d=0 \notag
+            \end{align}
+            其中：$B(x_k,{\mu}_k)$是$n\times n$正定矩阵，$A(x_k)$是$m\times n$行满秩矩阵。
+            \par
+            上述凸二次规划的全局极小点等价于方程中的$d_k$。下面，给出纯等式约束优化问题的SQP算法流程：\\
+            \textbf{step1.}初始化。
+            $x_0 \in R^n,{\mu}_0 \in R^l,\rho,r \in (0,1),0 \leqslant \varepsilon \ll 1$，置$k:=0$。\\
+            \textbf{step2.}计算$p(x_k,{\mu}_k)$的值。若$p(x_k,{\mu}_k) \leqslant \varepsilon$停止；否则转置step3。\\
+            \textbf{step3.}求解(\ref{eqSQP方法2})式的凸二次规划，得到$\bar{\mu}_k,d_{k}$。并置
+            \begin{align*}
+             v_k=\bar{\mu}_k-{\mu}_k-\frac{1}{2\tau}A(x_k)d_{k}
+            \end{align*}
+            \textbf{step4.}若$p(x_k+d_k,{\mu}_k+v_k) \leqslant (1-r)p(x_k,{\mu}_k)$，
+            则置${\alpha}_k:=1$，转到step6，否则转到step5。\\
+            \textbf{step5.}令$m_k$是使下面的不等式成立的最小非负整数$m$
+            \begin{align*}
+             p(x_k+{\rho}^md_k,{\mu}_k+{\rho}^mv_k) \leqslant (1-r{\rho}^m)p(x_k,{\mu}_k)
+            \end{align*}
+            置${\alpha}_k={\rho}^{m_k}$。\\
+            \textbf{step6.}令$x_{k+1}=x_k+{\alpha}_kd_k$，${\mu}_{k+1}={\mu}_k+{\alpha}_kv_k$，置$k:=k+1$，转到step2。
+            \par
+            不难发现，在上面的算法中，若${\alpha}_k < 1$，则必有
+            \begin{align*}
+             p(x_k+{\rho}^{m_{k-1}}d_k,{\mu}_k+{\rho}^{m_{k-1}}v_k) > (1-r{\rho}^{m_{k-1}})p(x_k,{\mu}_k)
+            \end{align*}
+            并且该算法具有全局收敛性：
+            \par
+            若SQP生成的序列$\{(x_k,{\mu}_k)\}$使得KKT矩阵的逆矩阵$N(x_k,{\mu}_k)^{-1}$一致有界，则$\{(x_k,{\mu}_k)\}$的任何聚点$(x^*,{\mu}^*)$都满足$p(x^*,{\mu}^*)=0$。特别地，$\{x_k\}$的任一聚点是原问题的KKT点。
+            下面给出的是线性SQP的收敛速度。
+            \par
+            设SQP产生的序列$\{x_k\}$收敛到一个局部极小点$x^*$，若$f,h$在$x^*$附近二阶连续可微，Jacobi矩阵$A(x^*)=\nabla h(x)^\mathrm{T} $行满秩，且二阶最优化充分条件成立，则有
+            \par
+            (1)\ $\{{\mu}_k\} \to {\mu}^*$，其中，${\mu}^*$是等式约束问题的Lagrange乘子，且$\{(x_k,{\mu}_k)\}$是二阶收敛的，即
+            \begin{align*}
+             \|(x_{k+1}-x^*,{\mu}_{k+1}-{\mu}^*)\|=O(\|(x_{k}-x^*,{\mu}_{k}-{\mu}^*)\|^2)
+            \end{align*}
+            \par
+            (2)序列$\{x_k\}$超线性收敛到$x^*$，且$t \in \mathbb{Z}$(正整数)
+            \begin{align*}
+             \|x_{k+1}-x^*\|=O(\|x_{k}-x^*\|\mathop {\Pi}\limits_{i=1}^t\|x_{k-i}-x^*\|)
+            \end{align*}
+        \subsubsection{一般约束优化的SQP算法}
+            \par
+            将前面的等式约束问题的SQP思想推广到一般形式的约束优化问题。在给定$(x_k,{\mu}_k,{\lambda}_k)$之后，将约束函数线性化，并且对$L(x,\lambda,\mu)$进行二次多项式近似，得到下列形式的二次规划子问题
+            \begin{align}
+            \label{eq:二次规划子问题}
+            &\mathop {\min}\  \frac 12 d^\mathrm{T} G_kd+\nabla f(x_k)d\\
+            &s.t.\left\{
+            \begin{aligned}
+            &h_i(x_k)+\nabla h_i(x_k)^\mathrm{T} d=0\quad i \in E\\
+            &g_j(x_k)+\nabla g_j(x_k)^\mathrm{T} d \geqslant 0\quad j \in I
+            \end{aligned}
+            \right.\notag
+            \end{align}
+            其中：
+            \begin{align*}
+            &G_k=G(x_k,{\mu}_k,{\lambda}_k)={\nabla}_{xx}^2L(x_k,{\mu}_k,{\lambda}_k)\\
+            &L(x,\mu,\lambda)=f(x)-\mathop{\sum}_i{\mu}_ih_i(x)-\mathop{\sum}_j{\lambda}_jg_j(x)
+            \end{align*}
+            于是$x_k$的校正步$d_k$以及新的乘子估计量${\mu}_{k+1},{\lambda}_{k+1}$可以分别定义为问题(\ref{eq:二次规划子问题})的最优解$d^*$和相应的拉格朗日乘子${\mu}^*,{\lambda}^*$。
+            \par
+            上述的二次规划子问题(\ref{eq:二次规划子问题})可能不存在可行点。为此，Powell引进一辅助变量$\xi$
+            \begin{align*}
+            &\mathop {\min} \ -\xi\\
+            &s.t.\left\{
+            \begin{aligned}
+            &-{\xi}h_i(x_k)+\nabla h_i(x_k)^\mathrm{T} d=0\quad i \in E\\
+            &-{\xi}g_k(x_k)+\nabla g_j(x_k)^\mathrm{T} d \geqslant 0\quad j \in u_k\\
+            &g_k(x_k)+\nabla g_i(x_k)^\mathrm{T} d \geqslant 0\quad i \in v_k\\
+            &-1 \leqslant \xi \leqslant 0
+            \end{aligned}
+            \right.
+            \end{align*}
+            其中：$u_k=\{i|g_i(x_k)<0,i\in I\}$，$v_k=\{i|g_i(x_k) \geqslant 0,i\in I\}$。
+            \par
+            注意到，在构建二次规划子问题(\ref{eq:二次规划子问题})时，需要计算$L(x,\lambda,\mu)$在迭代点$x_k$处的Hesse矩阵
+            $G_k=G(x_k,{\mu}_k,{\lambda}_k)$。但其计算量巨大，为了克服这一缺陷，1976年，华裔数学家韩世平(Han)基于N-L方法提出了一种利用对称正定矩阵$B_k$替代$G_k$的SQP。另外，Wilson于1963年较早考虑N-L方法。Powell于1977年修正了Ham的方法，所以也称这种SQP为WHP方法。
+            \par
+            在迭代点$(x_k,{\mu}_k,{\lambda}_k)$处，WHP需要构造一个下列形式的二次规划子问题
+            \begin{align}
+            \label{eq:一般约束规划的二次规划子问题}
+            &\mathop {\min} \ \frac 12 d^\mathrm{T} B_kd+\nabla f(x_k)^\mathrm{T} d\\
+            &s.t.\left\{
+            \begin{aligned}
+            &h_i(x_k)+\nabla h_i(x_k)^\mathrm{T} d=0\quad i \in E\\
+            &g_j(x_k)+\nabla g_j(x_k)^\mathrm{T} d \geqslant 0\quad j \in I
+            \end{aligned}
+            \right.
+            \end{align}
+            并且用此二次规划子问题的解$d_k$作为原问题变量$x_k$的搜索方向\footnote{注：搜索方向$d_k$是许多罚函数的下降方向，比如$\ell_1$罚函数。}。
+            \par
+            下面，给出WHP的算法步骤：\\
+            \textbf{step1.}初始化。
+            $x_0 \in R^n$，初始对称矩阵$B_0 \in R^{n\times n}$，容许误差$0<\xi \ll 1$，非负数列$\{\eta_k\}$，$\mathop {\sum}\limits_{k=0}^{\infty}{\eta_k}<{+\infty},\sigma > 0,\delta > 0$，置$k:=0$。\\
+            \textbf{step2.}求解二次规划子问题，解得$d_k$。\\
+            \textbf{step3.}若$\|d_{k}\|<\varepsilon$停止，输出$x_k$，否则转到step4。\\
+            \textbf{step4.}计算$\ell_1$罚函数$p(x,\sigma)$
+            \begin{align*}
+            p(x,\sigma)=f(x)+\frac{1}{\sigma}\Big[\mathop{\sum}_i|h_i(x)|+\mathop{\sum}_j|[g_j(x)]_-|\Big]
+            \end{align*}
+            其中：罚权重$\sigma > 0,[g_j(x)]_-=\max\{0,-g_j(x)\}$。
+            并按照某种线搜索规则确定步长${\alpha}_k \in (0,\delta ]$使得
+            \begin{align*}
+             p(x_k+{\alpha}_kd_k,\sigma) \leqslant \mathop{\min}\limits_{\alpha \in (0,\delta]}p(x_k+{\alpha}d_k,\sigma)+{\eta}_k
+            \end{align*}
+            \textbf{step5.}置$x_{k+ 1}:=x_k+{\alpha}_kd_k$，更新$B_k$为$B_{k+1}$，置$k:=k+1$，转到step2。
+            \par
+            下面，我们给出WHP的全局收敛性。
+            设$f,h_i,g_j$是连续可微的，且$\exists 0<m \leqslant M$，使对称正定矩阵$B_k$满足
+            \begin{align*}
+             m {\|d\|}^2\leqslant d^\mathrm{T} B_kd \leqslant M\|d\|^2\quad (\forall d \in R^n)
+            \end{align*}
+            \par
+            若罚权重$\sigma > 0$和二次规划子问题的拉格朗日乘子向量${\mu}_{k+1},{\lambda}_{k+1} \geqslant 0$满足
+            \begin{align*}
+             \sigma \max \{\|{\lambda}_{k+1}\|_{\infty},\|{\mu}_{k+1}\|_{\infty}\}\leqslant 1 \quad (\forall k)
+            \end{align*}
+            则WHP产生的序列$\{x_k\}$的任何聚点都是原问题的KKT点。在上述WHP中有两个存留的问题：\ding{172}关于$B_{k+1}$的计算。\ding{173}关于${\alpha}_k$的求解。下面介绍求解$B_{k+1}$的Powell方法和增广拉格朗日函数法，以及求解$\alpha_k$的价值函数法。
+            \paragraph{Powell的方法}
+            $B_{k+1}$的计算一般是用拟牛顿修正公式逐步迭代产生，我们希望$B_{k+1}$是Lagrange函数Hesse矩阵$G \triangleq {\nabla}^2_{xx}L$的近似。我们令
+            \begin{align*}
+             &s_k=x_{k+1}-x_k\\
+             &y_k={\nabla}_xL(x_{k+1},{\mu}_{k+1})-{\nabla}_xL(x_{k},{\mu}_{k+1})
+            \end{align*}
+            因为BFGS校正公式要求$s_k,y_k$满足曲率条件。$s_k^\mathrm{T} y_k>0$，但上式确定的$s_k,y_k$可能不满足这一条件。为此，有必要对$y_k$进行修正。Powell于1978年建议用下式对$y_k$进行修正
+            \begin{align*}
+            {\bar{y}}_k = \left\{
+            \begin{aligned}
+            &y_k \quad s_k^\mathrm{T} y_k \geqslant 0.2s_k^\mathrm{T} B_ks_k\\
+            &\theta_k y_k+(1-\theta_k)B_ks_k\quad \text{其它}
+            \end{aligned}
+            \right.
+            \end{align*}
+            其中：${\theta}_k=\frac{0.8s_k^\mathrm{T} B_ks_k}{s_k^\mathrm{T} B_ks_k-s_k^\mathrm{T} y_k}$。
+            \par
+            这种选取${\bar{y}}_k$的基本思想是：利用$y_k$和$B_ks_k$的凸组合构造一可以用来修正矩阵的向量。由于$B_ks_k$可理解为$y_k$的一种近似估计，且满足(因为$B_k$正定)
+            \begin{align*}
+             s_k^\mathrm{T} (B_ks_k)>0
+            \end{align*}
+            故利用$y_k$和$B_ks_k$的凸组合是一种很自然的选择。于是，矩阵$B_k$的约束BFGS校正公式为
+            \begin{align*}
+             B_{k+1}=B_k-\frac{B_ks_ks_k^\mathrm{T} B_k^\mathrm{T} }{s_k^\mathrm{T} B_ks_k}+\frac{{\bar{y}}_k{\bar{y}}_k^\mathrm{T} }{s_k^\mathrm{T} {\bar{y}}_k}
+            \end{align*}
+            由${\bar{y}}_k$的定义，不难验证$s_k^\mathrm{T} {\bar{y}}_k>0$。
+            \paragraph{基于增广拉格朗日函数的选择}
+            另一种选择$B_{k+1}$的方法是基于增广拉格朗日函数。考虑下面的增广拉格朗日函数
+            \begin{align*}
+             L_A(x,\lambda,\mu)=f(x)-{\lambda}^\mathrm{T} h(x)+\frac{1}{2\mu}\|h\|_2^2
+            \end{align*}
+            其中：罚权重$\mu > 0$。在局部极小点$(x^*,{\lambda}^*)$处，根据$h(x^*)=0$，可知增广拉格朗日函数的Hesse矩阵
+            \begin{align*}
+             {\nabla}^2_{xx}L_A(x^*,{\lambda}^*,{\mu})={\nabla}^2_{xx}L(x^*,{\lambda}^*)+{\mu}^{-1}A(x^*)^\mathrm{T} A(x^*)
+            \end{align*}
+            其中：等式右边第二项为曲率，对应着约束函数在$x^*$点的法向量张成的空间$\mathcal{R}(A^\mathrm{T} )$。对于纯等式约束的优化问题，若约束函数在$x^*$处的Jacobi矩阵$A(x^*)$行满秩，并且二阶最优化充分条件成立，则存在某个阈值$\bar{\mu}$，使得$\forall \mu \in (0,\bar{\mu}],{\nabla}^2_{xx}L_A(x_k,{\lambda}_k,{\mu})$是正定的。于是，$G(x_k,{\lambda}_k)$可以取成正定矩阵${\nabla}^2_{xx}L_A(x_k,{\lambda}_k,{\mu})$或者对${\nabla}^2_{xx}L_A$进行拟牛顿法近似的校正矩阵$B_k$。
+            \paragraph{步长${\alpha}_k$的选取}
+            为了保证SQP的全局收敛性，通常借助某价值函数来确定搜索步长${\alpha}_k$。如：目标函数$f$、罚函数$p$、增广拉格朗日函数$L_A$等都可以作为价值函数。
+            \par
+            $\ell_1$价值函数：
+            对于一般的约束优化问题，可以考虑相应的二次规划子问题(\ref{eq:一般约束规划的二次规划子问题})
+            % \begin{align}
+            % \label{eq:一般约束规划的二次规划子问题}
+            % &\mathop {\min} \ \frac 12 d^\mathrm{T} B_kd+\nabla f(x_k)^\mathrm{T} d\\
+            % &s.t.\left\{
+            % \begin{aligned}
+            % &h_i(x_k)+\nabla h_i(x_k)^\mathrm{T} d>0\quad i \in E\\
+            % &g_j(x_k)+\nabla g_j(x_k)^\mathrm{T} d \geqslant 0\quad j \in I
+            % \end{aligned}
+            % \right. \notag
+            % \end{align}
+            并且将罚函数写为如下的$\ell_1$罚函数($\ell_1$价值函数的形式)
+            \begin{align}
+            \label{eq:价值函数的形式}
+            p(x,\sigma) = f(x)+ \frac {1}{\sigma} \left( \|{g(x)}_{-}\|_1+\|h(x)\|_1 \right)
+            \end{align}
+            设$d_k {\lambda}^{k+1} \geqslant 0,{\mu}^{k+1}$为问题(\ref{eq:一般约束规划的二次规划子问题})的最优解和拉格朗日乘子向量，则$p(x,\sigma)$沿$d_k$的方向导数满足
+            \begin{align*}
+            D(p(x_k,\sigma),d_k) \leqslant -(d_k)^\mathrm{T} B_kd_k-({\sigma}^{-1}-\|{\lambda}_{k+1}\|_{\infty})\|(g(x))_{+}\|_1-({\sigma}^{-1}-\|{\mu}_{k+1}\|_{\infty})\|h_k\|
+            \end{align*}
+            其中：$(g_k)_{+}=\max \{0,-g(x_k)\}$。
+            \par
+            当然我们还有一些其它的价值函数可以选择，比如增广拉格朗日价值函数等\footnote{可以参考《数学规划》黄红选P302或者《最优化方法与Matlab程序设计》P231。}。
+            \par
+            下面给出一般约束优化问题的SQP算法流程\\
+            \textbf{step1.}初始化。给定初始点对$(x_0,\lambda_0,\mu_0)$，对称正定矩阵$B_0$，计算$f_0 = f(x_0)$，$\nabla f_0 = \nabla f(x_0)$，$g_0 = g(x_0)$，$h_0 = h(x_0)$，$A_0^\mathrm{T} = (\nabla g(x^0),\nabla h(x^0))$，选择参数$\eta \in (0,1/2)$，$\tau \in (0,1)$，容许误差$\epsilon_1,\epsilon_2>0$，置$k:=0$。\\
+            \textbf{step2.}计算改进方向。求解二次规划自问题，得到变量$x_k$的改进方向$d_k$。\\
+            \textbf{step3.}收敛性检验。若$||d_k||_1 \leqslant \epsilon_1$，并且$||(g_k)_-||_1+||h_k||_1 \leqslant \epsilon_2$成立，则得到约束优化问题的一个近似KKT点$(x_k,\lambda_k,\mu_k)$，算法终止；否则，转到step4。\\
+            \textbf{step4.}确定罚因子。对于某种价值函数$\phi(x,\sigma)$，选择罚因子$\sigma_k$，使得$d_k$为该函数在$x_k$点的下降方向。\\
+            \textbf{step5.}步长选择。在序列$1,\tau,\tau^2,\dots$中，选择最大的项作为$\alpha_k$，使得
+            \begin{align*}
+            \phi(x_k+\alpha_k d_k,\sigma_k) \leqslant \phi(x_k,\sigma_k)+\eta \alpha_k D (\phi(x_k,\sigma_k),d_k)
+            \end{align*}
+            \textbf{step6.}改进迭代点。令$x_{k+1} = x_{k}+\alpha_k d_k$，并且计算
+            \begin{align*}
+            & f_{k+1} = f(x_{k+1})\\
+            & \nabla f_{k+1} = \nabla f(x_{k+1})\\
+            & g_{k+1} = g(x_{k+1})\\
+            & h_{k+1} = h(x_{k+1})\\
+            & A_{k+1}^{\mathrm{T}} = (\nabla g(x_{k+1}),\nabla h(x_{k+1}))
+            \end{align*}
+            以及最小二乘乘子
+            \begin{align*}
+            \begin{pmatrix}
+            \lambda_{k+1}\\
+            \mu_{k+1}
+            \end{pmatrix}
+            =
+            (A_{k+1}A_{k+1}^\mathrm{T})^{-1}A_{k+1}\nabla f_{k+1}
+            \end{align*}
+            \textbf{step7.}校正Hesse矩阵。令
+            \begin{align*}
+            s_k = \alpha_k d_k,\quad y_k = \nabla_x L(x_{k+1},\lambda_{k+1},\mu_{k+1}) - \nabla_x L(x_k,\lambda_{k+1},\mu_{k+1})
+            \end{align*}
+            利用约束牛顿公式修正矩阵$B_k$，生成新的对称正定矩阵$B_{k+1}$，令$k:=k+1$，返回step2。
+            \par
+            在上述算法中，我们隐设了矩阵$A_k$是行满秩的。如果这个条件不成立，那么在计算最小二乘乘子时，就需要使用计算矩阵广义逆的技巧。最后，值得指出的是，对于无约束优化问题，如果$x^*$是驻点，并且目标函数$f(x)$在该点满足二阶最优性充分条件，即Hesse矩阵正定，那么只要迭代点列$\{x_k\}$收敛到$x^*$，并且搜索方向列$\{d_k\}$满足
+            \begin{align*}
+            \lim _{k\to \infty} \frac{||x_k+d_k-x^*||}{||x_k-x^*||} = 0
+            \end{align*}
+            对于充分大的$k$，必然有
+            \begin{align*}
+            f(x_k+d_k) < f(x_k)
+            \end{align*}
+            我们把这样的$d_k$称为超线性收敛步。
+\section{MATLAB应用实例}
+    \par
+    MATLAB通过fmincon函数来求解约束优化问题，其调用格式为
+    \par
+    [x,fval,exitflag,output,lambda,grad,hessian]=fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonlan,options)\\
+    其中：fun为目标函数；x0为初始点；A,b为线性不等式约束$Ax \leqslant b$；Aeq,beq为线性等式约束Aeq x=beq；lb,ub为自变量x的上下限，$lb \leqslant x \leqslant ub$；nonlcon为非线性约束条件；options为结构体参数；lambda为最优点$x$处的拉格朗日乘子；grad为最优点$x$处的梯度；hessian为最优点$x$处的Hesse矩阵；
+    \par
+    我们用fmincon函数来求解如下非线性约束优化问题
+    \begin{align*}
+    &\mathop {\min}\  f(x)=x_1^4-4x_1-8x_2+15\\
+    &s.t.\left\{
+    \begin{aligned}
+    &9-x_1^2-x_2^2 \leqslant 0\\
+    &2x_1+3x_2 \leqslant 2\\
+    &x_2-x_1 \leqslant 5
+    \end{aligned}
+    \right.
+    \end{align*}
+    其求解程序为
+    \begin{lstlisting}[language=Matlab]
+    fun = @(x)x(1)^4-4x(1)-8x(2)+15;
+    x0 = [1,2];
+    A = [2,3;1,-1];
+    b = [2;5];
+    Aeq = [];
+    beq = [];
+    Lb = [];
+    Ub = [];
+    function[c, ceq] = ConFun(x)
+        c = 9-x(1)^2-x(2)^2;
+        ceq = [];
+    end
+    nonlcon = @ConFun
+    options = optimoptions('fmincon', 'Display', 'iter', 'Algorithm', 'sqp');
+    x = fmincon(fun,x0,A,b,Aeq,beq,lb,ub,nonlcon,option)
+    \end{lstlisting}
+
+

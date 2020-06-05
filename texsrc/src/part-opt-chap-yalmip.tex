@@ -1,0 +1,431 @@
+% % \part{优化模型}
+% % \chapter{优化工具Yalmip简介}
+
+\chapter{优化工具Yalmip简介}
+\section{一些Yalmip可解的优化模型}
+    \par
+    下面，我们来介绍一个MATLAB优化工具箱(重量级) - Yalmip。先来列举一些Yalmip可以求解的优化问题：
+    \par
+    (1)线性规划LP
+    \begin{align*}
+    &\min_x \ c^\mathrm{T}x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax = b\\
+    &x_i \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    MATLAB使用单纯形法、内点法和动态序列算法来求解线性规划问题，求解命令为x=linprog(c,A,b)。
+    \par
+    (2)二次规划QP
+    \begin{align*}
+    &\min_x \ x^\mathrm{T} Hx + x^\mathrm{T}p\\
+    &s.t.\quad Ax \geqslant b
+    \end{align*}
+    MATLAB使用内点凸包算法、信赖域反射算法和动态序列算法求解二次规划，求解命令为x=quadprog(\\H,c,A,b).
+    \par
+    (3)二阶锥规划SOCP
+    \begin{align*}
+    &\min_x \ c^\mathrm{T}x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax = b\\
+    &A_ix - b_i \preceq L^{m_i}
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$L^{m_i}$是$R^{m_i}$中的二阶锥。
+    \par
+    (4)线性半定规划SDP
+    \begin{align*}
+    &\min_x \ c \cdot x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &A_ix = b_i\\
+    &x \succeq 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    (5)非线性半定规划
+    \begin{align*}
+    &\min_x \ c^\mathrm{T}x\\
+    &s.t. \quad F_0 + \sum_{i = 1}^mx_iF_i \succeq 0,\quad i = 1,2,\dots,m
+    \end{align*}
+    其中：$b_i$为实数；$c,A_i,F_i$为$n\times n$实对称矩阵。
+    \par
+    (6)行列式规划
+   \begin{align*}
+    &\min_x \ c ^\mathrm{T} x + \log \det G(x)^{-1}\\
+    &s.t.\left\{
+    \begin{aligned}
+    &G(x) \geqslant 0\\
+    &F(x) \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$x\in R^m$，$G:R^m \rightarrow R^{l\times l}$，$F:R^m\rightarrow R^{n\times n}$，$G_i = G_i^\mathrm{T}$，$F_i = F_i^\mathrm{T}$，$i = 0,1,\dots,m$
+    \begin{align*}
+    G(x) = G_0 + x_1G_1 + \dots,+x_mG_m\\
+    H(x) = H_0 + x_1H_1 + \dots,+x_mH_m
+    \end{align*}
+    一个专用于行列式规划的工具箱是“maxdet”，可参考\cite{Maxdetguide}。
+    \par
+    (7)几何规划
+    \begin{align*}
+    &\min_x \ f_0(x)\\
+    &s.t.\left\{
+    \begin{aligned}
+    &f_i(x) \leqslant 1,\quad i = 1,\dots,m\\
+    &h_i(x) = 1,\quad i = 1,\dots,p
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$f_i(x)$是正项函数，$x\in R^n$。
+    % 由于优化部分我们没有介绍几何规划，这里我们给出几何规划的一个示例
+    % \begin{align*}
+    % &\min_{x,y,z} \ x^{-1}y^{-\frac{1}{2}}z^{-1} + 2.3xz+4xyz   \\
+    % &s.t.\left\{
+    % \begin{aligned}
+    % &\frac{1}{3} x^{-2}y^{-2} + \frac{4}{3}y^{\frac{1}{2}}z^{-1} \leqslant 1 \\
+    % &x+2y+3z \leqslant 1\\
+    % & \frac{1}{z}xy = 1
+    % \end{aligned}
+    % \right.
+    % \end{align*}
+    一个专用于几何规划的工具箱是“GGPLAB”，可参考\cite{GGPLAB}。
+    \par
+    Yalmip还可以求解整数规划、混合整数规划和全局规划等等最优化问题，这里不再详细介绍。下面，我们来看Yalmip的用法。
+\section{Yalmip应用实例}
+    \subsection{Yalmip的安装}
+        \begin{lstlisting}[language = Matlab]
+        %% Installation YALMIP
+        folderName = fullfile(matlabroot,'toolbox','yalmip');%[pwd filesep 'yalmip']
+        mkdir(folderName)
+        cd(folderName)
+        urlwrite('https://github.com/yalmip/yalmip/archive/master.zip','yalmip.zip');
+        unzip('yalmip.zip','yalmip');
+        p = genpath(folderName);
+        addpath(p);
+        savepath
+        \end{lstlisting}
+    \subsection{解线性规划和二次规划}
+        \par
+        用Yalmip求解线性规划和二次规划。以线性回归问题为例，我们设定线性回归模型为
+        \begin{align*}
+        &y = xw+\varepsilon\\
+        &\hat{y} = xw
+        \end{align*}
+        其中：$x$是$n\times p$矩阵。现在要求使下面的目标最小的$w$
+        \begin{enumerate}
+        \item $\min\limits_w \ J_1(w) = ||y - \hat{y}||^\infty = \max_i \{|y_i - \hat{y}_i|\}$
+        \item $\min\limits_w \ J_2(w) = ||y - \hat{y}||^1 = \sum_{i = 1}^n |y_i - \hat{y}_i|$
+        \item $\min\limits_w \ J_3(w) = ||y - \hat{y}||^2 =  \sqrt{\sum_{i = 1}^n (y_i - \hat{y}_i)^2} = (y - \hat{y})^\mathrm{T}(y - \hat{y})$
+        \end{enumerate}
+        更一般的，我们可以设置目标为离差$y - \hat{y}$的$p$阶范数
+        \begin{align*}
+        \min_w \ ||y - \hat{y}||^p
+        \end{align*}
+        \par
+        对上面的目标1、2和3，目标2为线性规划问题，目标3为二次规划问题，并且这些优化问题不存在约束条件。上述3个目标的Yalmip的程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 线性规划&二次规划----线性回归示例
+        w = [1 2 3 4 5 6]';
+        n = (0:0.02:2*pi)';
+        x = [sin(n) sin(2*n) sin(3*n) sin(4*n) sin(5*n) sin(6*n)];
+        e = (-4+8*rand(length(n),1));
+        e(100:115) = 30;
+        y = x*w+e;
+        plot(n,y);
+        %第一种方法
+        what = sdpvar(6,1);
+        residuals = y-x*what;
+        optimize([],norm(residuals,inf));
+        w_Linf = value(what);
+        optimize([],norm(residuals,1));
+        w_L1 = value(what);
+        optimize([],norm(residuals,2));
+        w_L2 = value(what);
+        plot(n,[y x*w_L1 x*w_L2 x*w_Linf]);
+        %第二种方法
+        bound = sdpvar(length(residuals),1);
+        Constraints = [-bound <= residuals <= bound];
+        optimize(Constraints,sum(bound));
+        w_L1 = value(what);
+        %
+        optimize([],residuals'*residuals);
+        w_L2 = value(what);
+        %
+        bound = sdpvar(1,1);
+        Constraints  = [-bound <= residuals <= bound];
+        optimize(Constraints,bound);
+        w_Linf = value(what);
+        %绘图
+        plot(n,[y x*w_L1 x*w_L2 x*w_Linf]);
+        \end{lstlisting}
+    \subsection{解二阶锥规划}
+        \par
+        我们仍然以回归问题为例，考虑一般形式的岭回归
+        \begin{align*}
+        \min_w \ ||y - xw||^2 + \lambda||w||^2
+        \end{align*}
+        为了方便，这里我们取$\lambda = 1$，于是优化问题变为
+        \begin{align*}
+        \min_w \ ||y - xw||^2 + ||w||^2
+        \end{align*}
+        将上面的优化问题变为二阶锥SOCP问题，有
+        \begin{align*}
+        &\min_w  \ u+v\\
+        &s.t.\left\{
+        \begin{aligned}
+        &||y-xw||^2 \leqslant u\\
+        &||w||^2 \leqslant v
+        \end{aligned}
+        \right.
+        \end{align*}
+        上面问题的程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 二阶锥规划--线性回归示例
+        sdpvar u v
+        %方法1
+        F = [cone(y-x*what,u), cone(what,v)];
+        solvesdp(F,u + v);
+        %方法2
+        F = [norm(y-x*what,2) <= u, norm(what,2) <= v];
+        solvesdp(F,u + v);
+        %方法3
+        solvesdp([],norm(y-x*what,2) + norm(what,2));
+        \end{lstlisting}
+    \subsection{解半定规划}
+        \par
+        考虑如下半定规划问题
+        \begin{align*}
+        &\min_w \ c^\mathrm{T}x\\
+        &s.t.\left\{
+        \begin{aligned}
+        &A_1x = b_1\\
+        &A_2x \geqslant b_2\\
+        &F_0 + x_1F_1+\dots+x_pF_p \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$F_0+x_1F_1 + \dots+x_pF_p\geqslant 0$是一个LMI(Linear Matrix Inequality)。我们将模型中的量设置为
+        \begin{align*}
+        &F_0 =
+        \begin{bmatrix}
+        2& -0.5 & -0.6\\
+        -0.5& 2 & 0.4 \\
+        -0.6 & 0.4 & 3
+        \end{bmatrix}
+        ,\quad
+        F_1 =
+        \begin{bmatrix}
+        0 & 1 & 0\\
+        1 & 0 & 0\\
+        0 & 0 & 0
+        \end{bmatrix}
+        \\
+        &F_2 =
+        \begin{bmatrix}
+        0 & 0 & 1\\
+        0 & 0 & 0\\
+        1 & 0 & 0
+        \end{bmatrix}
+        ,\quad
+        F_3 =
+        \begin{bmatrix}
+        0 & 0 & 0\\
+        0 & 0 & 1\\
+        0 & 1 & 0
+        \end{bmatrix}
+        \end{align*}
+        以及
+        \begin{align*}
+        & 0.7 \leqslant x_1 \leqslant 1\\
+        & 0 \leqslant x_2 \leqslant 0.3\\
+        & 0 \leqslant x_3\\
+        & x_1+x_2+x_3 = 1
+        \end{align*}
+        \par
+        令$t=c^\mathrm{T}x$，则有
+        \begin{align*}
+        & \min_x \ t\\
+        & s.t.
+        \left\{
+        \begin{aligned}
+        & A_1x = b_1\\
+        & A_2x \geqslant b_2\\
+        & tI - (x_1F_1+x_2F_2+x_3F_3) \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$x = (x_1,x_2,x_3,t)^\mathrm{T}$，$A=[1,1,1,0]^\mathrm{T}$，$b=1$，$b_2 = (0.1,-1,0,-0.3,0)^\mathrm{T}$，
+        \begin{math}
+        A_2=
+        \left(
+        \begin{smallmatrix}
+        1& 0 & 0 & 0\\
+        -1& 0 & 0 & 0\\
+        0& 1 & 0 & 0\\
+        0 &-1 & 0 & 0\\
+        0& 0 & 1 &0
+        \end{smallmatrix}
+        \right)
+        \end{math}
+        。利用Yalmip求解上述NLSDP(非线性半定规划)的程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 半定规划
+        t = sdpvar(1);
+        x = sdpvar(3,1,'full');
+        F0 = [2,-0.5,-0.6;-0.5,2,0.4;-0.6,0.4,3];
+        F1 = [0 1 0; 1 0 0; 0 0 0];
+        F2 = [0 0 1;0 0 0;1 0 0];
+        F3 = [0 0 0;0 0 1;0 1 0];
+        a = [sum(x) == 1];%等式约束
+        b = [0.7 <= x(1) <= 1, 0 <= x(2)<=0.3, x(3)>=0];%不等式约束
+        c = [t*eye(3) - (F0 + x(1)F1 + x(2)F(2)+ x(3)F3)>= 0 ]%LMI约束
+        obj = t;
+        constraint = [a,b,c];
+        solvesdp(constraint,obj);
+        xbest = double(x);
+        \end{lstlisting}
+    \subsection{解行列式规划}
+        \par
+        给定两个椭圆
+        \begin{align*}
+        E_1 = \{x|x^\mathrm{T}P_1x \leqslant 1\}\\
+        E_2 = \{x|x^\mathrm{T}P_2x \leqslant 1\}
+        \end{align*}
+        找到包含这两个$E_1,E_2$的最小椭圆$E = x^\mathrm{T}x \leqslant 1$。由于椭圆的体积与$\det p$成正比，所以我们的目标是
+        \begin{align*}
+        & \max_P \ \det P\\
+        & s.t.\left\{
+        \begin{aligned}
+        & P \leqslant t_1P_1\\
+        & P \leqslant t_2P_2\\
+        & 0 \leqslant t_1 \leqslant 1\\
+        & 0 \leqslant t_2 \leqslant 1
+        \end{aligned}
+        \right.
+        \end{align*}
+        目标函数$\min_P \ -\det P$是非凸的，但是单调转换可以使其变为凸问题，例如：$\min_P\ -\log \det P$。Yalmip采用如下变化
+        \begin{align*}
+        \min_P\ -\det (P)^{\frac{1}{m}}
+        \end{align*}
+        其中：$m$为$P$的维数，这里$m = 2$。其求解程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 行列式规划
+        n = 2;
+        P1 = randn(2);P1 = P1*P1';
+        P2 = randn(2);P2 = P2*P2';
+        t = sdpvar(2,1);
+        P = sdpvar(n,n);
+        F = [1 >= t >=0, t(1)*P1 - P >= 0, t(2)*P2 >= 0];
+        obj = -geomean(P);
+        sol = optimize(F,obj);
+        x = sdpvar(2,1);
+        plot(x'*value(P1)*x,[]),hold on
+        plot(x'*value(P2)*x,[])
+        plot(x'*value(P)*x,[])
+        % 或者
+        optimize(F - logdet(P),sdpsetting('solver','sdpt3'));
+        \end{lstlisting}
+    \subsection{解一般凸规划}
+        \par
+        考虑如下一般的凸规划问题
+        \begin{align*}
+        & \max_x \ -\sum \log(b - Ax)\\
+        & s.t.\quad Ax \leqslant b
+        \end{align*}
+        令$y = \log(b-Ax)$，则
+        \begin{align*}
+        & \min_x \ -\sum y\\
+        & s.t. \quad e^y <= b-Ax
+        \end{align*}
+        上述问题的Yalmip程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 一般凸规划
+        n = 5;m = 20;
+        A = randn(m,n);
+        b = rand(m,1)*m;
+        x = sdpvar(n,1);
+        y = sdpvar(m,1);
+        constraint = [exp(y <= b-Ax)];
+        obj = -sum(y);
+        sol = optimize(constraint,obj);
+        \end{lstlisting}
+    \subsection{整数规划}
+        \par
+        考虑如下整数规划问题
+        \begin{align*}
+        & \min_x \ c^\mathrm{T}x\\
+        & s.t.\left\{
+        \begin{aligned}
+        & Ax \leqslant b\\
+        & Aeq x \leqslant beq\\
+        & x \geqslant x_m\\
+        & x\text{为整数}
+        \end{aligned}
+        \right.
+        \end{align*}
+        \par
+        MATLAB旧版本用bintprog命令来求解0-1规划，新版本MATLAB用intprog命令来求0-1规划、整数规划和混合整数规划。
+        上述问题的Yalmip求解程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 整数规划
+        c = -[2 1 4 3 1]';
+        A = [0 2 1 4 2;3 4 5 -1 -1];
+        b = [54; 62];
+        Aeq = [];beq = [];
+        xm = [0, 0 ,3.52, 0.678, 2.57]';
+        x = sdpvar(5,1);
+        obj = c'*x;
+        constraint = [Ax <= b, xm <= x, integer(x)];
+        sol = optimize(constraint ,obj);
+        \end{lstlisting}
+        \par
+        另外，我们考虑在线性回归中，待求参数$w$是整数的情况
+        \begin{align*}
+        &\min_w \ ||y - wx||^2\\
+        &s.t.\quad w\text{为整数}
+        \end{align*}
+        \begin{lstlisting}[language = Matlab]
+        what = intvar(6,1);%what = sdpvar(6,1);
+        residuals = y-x*what;
+        optimize([],norm(residuals,2));
+        w_L2 = value(what);
+        plot(n,[y x*w_L1 x*w_L2 x*w_Linf]);
+        \end{lstlisting}
+    \subsection{非凸二次规划}
+        \par
+        考虑如下非凸二次规划
+        \begin{align*}
+        & \min_x\ x^\mathrm{T}Qx \\
+        & s.t.\quad -1 \leqslant x \leqslant 1
+        \end{align*}
+        其求解程序为
+        \begin{lstlisting}[language = Matlab]
+        %% 非凸二次规划
+        Q = magic(5);
+        x = sdpvar(5,1);
+        ops1 = sdpsettings('solver','bmibnb','bmibnb.maxiter',1000,...
+        'bmibnb.uppersolver','fmincon');
+        ops2 = sdpsettings('solver','moment','moment.order',3);
+        ops3 = sdpsettings('solver','moment','moment.order',2);
+        ops4 = sdpsettings('solver','kktqp');
+        for n = 1:10
+          Q = magic(n);
+          x = sdpvar(n,x);
+          sol = optimize([-1<=x<=1],x'*Q*x,ops1);
+          comptimes(n,1) = sol.solvertine;
+          sol = optimize([-1<=x<=1],x'*Q*x,ops2);
+          comptimes(n,2) = sol.solvertine;
+          sol = optimize([-1<=x<=1,x.*x<=1],x'*Q*x,ops3);
+          comptimes(n,3) = sol.solvertine;
+          sol = optimize([-1<=x<=1],x'*Q*x,ops4);
+          comptimes(n,4) = sol.solvertine;
+        end
+        semilogy(1:n,comptimes)
+        \end{lstlisting}
+

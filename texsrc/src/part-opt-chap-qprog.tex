@@ -1,0 +1,627 @@
+% % \part{优化模型}
+% % \chapter{二次规划}
+
+\chapter{二次规划}
+
+\section{问题的引入与分析}
+    \label{sec:二次规划引例}
+    \par
+    考虑如下组合投资问题：设有$n$支股票，第$i$支股票的收益率为$r_i$(当然，就时间序列而言，此需要平稳性前提)。我们假设$[0,T]$时间内$r_i(t)$独立同分布于$N({\mu}_i,{\sigma}_i^2)$，则
+    \begin{align*}
+    &{\mu}_i = E(r_i)\\
+    &{\sigma}_i^2=E[(r_i-{\mu}_i)^2]
+    \end{align*}
+    现在，我们决定将现有资产中的$x_i$比例投资股票$i$。
+    问：如何的组合情况$x=(x_1,x_2,\ldots,x_n)^\mathrm{T} $，能使投资的收益最大风险最小。
+    \par
+    解：目标1，我们要求股票收益最大。我们将收益定义为
+    \begin{align*}
+    R=x^\mathrm{T} r=\mathop{\sum}\limits_{i=1}^n x_ir_i
+    \end{align*}
+    \par
+    目标2，投资风险最小。风险的度量有许多种，这里，我们选取最常用的方差作为度量。投资组合$R=x^\mathrm{T} r$的方差为
+    \begin{align*}
+    E(R-E(R))^2&=E \left( \mathop{\sum}\limits_{i} x_i(r_i-{\mu}_i) \right) ^2\\
+    &=\mathop{\sum}\limits_{i}\mathop{\sum}\limits_{j}x_ix_j{\sigma}_{ij}\\
+    &=x^\mathrm{T} Qx
+    \end{align*}
+    其中：${Q}=(cor(r_ir_j))_{n\times n}=(\sigma_{ij})_{n\times n}$。
+    \par
+    于是，得到的优化模型为
+    \begin{align*}
+    &\mathop {\min}\limits_x\  x^\mathrm{T} Qx\\
+    &\mathop {\max}\limits_x\  x^\mathrm{T} r\\
+    &s.t.\left\{
+    \begin{aligned}
+    &x^\mathrm{T} e=1\\
+    &x \geqslant 0\\
+    &i=1,2,\ldots,n
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    上面的模型有2个目标，而且这2个目标相互冲突：不能同时达到最优。这是一个多目标规划问题，具体处理方法在多目标章节介绍。下面，我们对其进行一定的处理。
+    \par
+    (1)要求收益在不小于一定值的条件下风险最小，则有
+    \begin{align*}
+    &\mathop {\min}\limits_x \ x^\mathrm{T} Qx\\
+    &s.t.\left\{
+    \begin{aligned}
+    &x^\mathrm{T} e=1\\
+    & 0 \leqslant x \leqslant 1\\
+    &x^\mathrm{T} r > b
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$x \in R^n$，$Q \in R^{n\times n}$，$e \in R^n$，$b \in R$，$r \in R^n$，$b$为最低收益常数。
+    \par
+    (2)也可以将多目标合并为单目标，设目标权重为$k$，则有
+    \begin{align*}
+    &\mathop {\min}\limits_x\  x^\mathrm{T} Qx-kx^\mathrm{T} r\\
+    &s.t.\left\{
+    \begin{aligned}
+    &x^\mathrm{T} e=1\\
+    &0 \leqslant x_i \leqslant 1\\
+    & i = 1,2,\dots,n
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    用MATLAB解组合投资的二次规划问题。MATLAB采用以下三种算法来求解二次规划：
+    \begin{enumerate}
+    \item 内点凸包算法：具有任何约束组合的凸包问题；
+    \item 信赖域反射算法：求解边界约束或线性等式约束问题；
+    \item 动态序列算法：求解任何约束组合的问题。
+    \end{enumerate}
+    \par
+    设组合投资的二次规划模型如下
+    \begin{align*}
+    &\mathop {\min}\limits_{x \in R^n}\  f(x)=x^\mathrm{T} Qx\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop {\sum}\limits_{i=1}^n x_ir_i \geqslant r\\
+    &\mathop {\sum}\limits_{i=1}^n x_i = 1\\
+    &0 \leqslant x_i \leqslant 1\\
+    &i=1,2,\ldots,n
+    \end{aligned}
+    \right.
+    \end{align*}
+    并且假设现在有225支股票，即$n=225$。其求解程序如下
+    \begin{lstlisting}[language = Matlab]
+    %% 组合投资二次规划问题
+    %加载数据
+    load('port5.mat','Correlation','stdDev_return','mean_return')
+    %计算相关向量矩阵Q
+    Covariance = Correlation .* (stdDev_return * stdDev_return');
+    nAssets = numel(mean_return);
+    r = 0.002;%获利下限
+    Aeq = ones(1,nAssets);
+    beq = 1;
+    Aineq = -mean_return';
+    bineq = -r;
+    lb = zeros(nAssets,1);
+    ub = ones(nAssets,1);
+    c = zeros(nAssets,1);
+    options = optimoptions('quadprog','Algorithm','interior-point-convex');
+    options = optimoptions(options,'Display','iter','TolFun',1e-10);
+    [x1,fval1] = quadprog(Covariance,c,Aineq,bineq,Aeq,beq,lb,ub,[],options);
+    plotPortfDemoStandardModel(x1)
+    % 分组投资225-Asset Problem with Group Constraints
+    % 新的投资组合要求：
+    % sum_1_75 xi>=0.3;sum_76_150 xi>=0.3;sum_151_225 xi>=0.3
+    Groups = blkdiag(ones(1,nAssets/3),ones(1,nAssets/3),ones(1,nAssets/3));
+    Aineq = [Aineq; -Groups];         % convert to <= constraint
+    bineq = [bineq; -0.3*ones(3,1)];  % by changing signs
+    [x2,fval2] = quadprog(Covariance,c,Aineq,bineq,Aeq,beq,lb,ub,[],options);
+    % Plot results, superimposed to results from previous problem.
+    plotPortfDemoGroupModel(x1,x2);
+    %% 1000支股票
+    % 为了展示quadprog的内点算法能解决更大的问题,我们使用一个随机生成1000的数据集。
+    % 我们生成一个随机相关矩阵(对称半正定,对角线)。
+    % Reset random stream for reproducibility.
+    rng(0,'twister');
+    nAssets = 1000;
+    % Generate means of returns between -0.1 and 0.4.
+    a = -0.1;
+    b = 0.4;
+    mean_return = a + (b-a).*rand(nAssets,1);
+    % Generate standard deviations of returns between 0.08 and 0.6.
+    a = 0.08;
+    b = 0.6;
+    stdDev_return = a + (b-a).*rand(nAssets,1);
+    % Correlation matrix, generated using Correlation = gallery('randcorr',nAssets).
+    % (Generating a correlation matrix of this size takes a while, so we load
+    % a pre-generated one instead.)
+    load('correlationMatrixDemo.mat','Correlation');
+    % Calculate covariance matrix from correlation matrix.
+    Covariance = Correlation .* (stdDev_return * stdDev_return');
+    % Define and Solve Randomly Generated 1000-Asset Problem
+    % We now define the standard QP problem (no group constraints here) and solve.
+    r = 0.15;
+    Aeq = ones(1,nAssets);
+    beq = 1;
+    Aineq = -mean_return';
+    bineq = -r;
+    lb = zeros(nAssets,1);
+    ub = ones(nAssets,1);
+    c = zeros(nAssets,1);
+    x3 = quadprog(Covariance,c,Aineq,bineq,Aeq,beq,lb,ub,[],options);
+    \end{lstlisting}
+\section{模型的规范化及基本理论}
+    \subsection{规范化}
+        \par
+        根据上面的例子，我们写出二次规划的一般形式
+        \begin{align*}
+        &\mathop {\min}\limits_{x\in R^n}\ f(x)=\frac 12 x^\mathrm{T} Qx+c^\mathrm{T} x\\
+        &s.t.\left\{
+        \begin{aligned}
+        &A_1x \leqslant b_1\\
+        &A_2x = b_2
+        \end{aligned}
+        \right.
+        \end{align*}
+        或者写为
+        \begin{align*}
+        &\mathop {\min}\limits_{x}\ f(x)=\frac 12 \mathop{\sum}\limits_{i}\mathop{\sum}\limits_{j}x_ix_j{Q}_{ij}+\mathop {\sum}\limits_{i=1}^n c_ix_i\\
+        &s.t.\left\{
+        \begin{aligned}
+        &a_i^\mathrm{T} x \leqslant b_i \quad i \in I\\
+        & a_j^\mathrm{T} x = b_j \quad j \in E
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：$Q=Q^\mathrm{T}  \in R^{n \times n}$，$x \in R^n$，$I=\{1,2,\ldots,m\}$，$E=\{1,2,\ldots,l\}$，$|I|=m$，$|E|=l$，$A_1 \in R^{|I|\times n}$，$A_2 \in R^{|E|\times n}$。由凸函数判定定理，我们有：如果目标函数$f$的Hesse矩阵$Q$是正定的，则该二次规划称为凸二次规划问题。
+    \subsection{最优化条件}
+        \paragraph{必要条件}
+        设$x^*$为二次规划的一个局部极小点，则存在乘子${\lambda}^* \in R^{|I|}_{+}$，${\mu}^* \in R^{|E|}$，有
+        \begin{align*}
+        &Qx^*+c=A_1^\mathrm{T} {\lambda}^*+A_2^\mathrm{T} {\mu}^*\\
+        &(A_1x^*-b_1)^\mathrm{T} {\lambda}^*=0\\
+        &{\lambda}^* \geqslant 0
+        \end{align*}
+        且对一切满足
+        \begin{align*}
+        d^\mathrm{T} a_i=0\quad i \in E \cup I(x^*)
+        \end{align*}
+        的$d$\ ($d\in R^n$)，有
+        \begin{align*}
+        d^\mathrm{T} Qd \geqslant 0
+        \end{align*}
+        其中：$E=\{1,2,\ldots,l\}$，$I(x^*)=\{i|a_i^\mathrm{T} x^*=b_i,i \in I\}$。
+        \paragraph{充分条件}
+        设$x^*$为二次规划的一个KKT点，${\lambda}^*{\mu}^*$为Lagrange乘子。如果对于一切满足
+        \begin{align}
+          \label{充分条件}
+          \left\{
+            \begin{aligned}
+                &d^\mathrm{T} a_i = 0 \quad i\in E\\
+                &d^\mathrm{T} a_i \geqslant 0 \quad i\in I(x^*)\\
+                &{d}^\mathrm{T} a_i = 0 \quad i\in I(x^*),{\lambda}^*_i>0,{\mu}^*_i>0
+            \end{aligned}
+          \right.
+        \end{align}
+        的非零向量$d$，都有
+        \begin{align*}
+        d^\mathrm{T} Qd>0
+        \end{align*}
+        则$x^*$为二次规划的拒不严格极小点。
+        \paragraph{充分必要条件}
+        设$x^*$为二次规划的可行点，则$x^*$是局部极小点，当且仅当存在${\lambda}^*{\mu}^*$，使得
+        \begin{align*}
+                &Qx^*+c = A_1^\mathrm{T} {\lambda}^*+A_2^\mathrm{T} {\mu}^*\\
+                &(A_1x^*-b_1)^\mathrm{T} {\lambda}^*=0\\
+                &{\lambda}^* \in R^{|I|}_{+},\ {\mu}^* \in R^{|E|}
+        \end{align*}
+        成立，且对一切满足(\ref{充分条件})式的向量$d$有
+        \begin{align*}
+        d^\mathrm{T} Qd \geqslant 0
+        \end{align*}
+        注：对凸二次规划而言，$x^*$为全局极小点，当且仅当$x^*$为局部极小点，$x^*$为KKT点。
+    \subsection{对偶问题}
+        \par
+        二次规划的对偶理论最先由J.B.Dennis和W.S.Dorn等人于1959年和1960年给出。令
+        \begin{align*}
+        A=\begin{pmatrix} A_1 \\ A_2\end{pmatrix}\quad b=\begin{pmatrix} b_1\\b_2 \end{pmatrix} \quad w=\begin{pmatrix}\lambda \\\mu \end{pmatrix}
+        \end{align*}
+        则二次规划的拉格朗日函数为
+        \begin{align*}
+         L(x,\lambda,\mu)&=\frac{1}{2}x^\mathrm{T} Qx+c^\mathrm{T} x-{\lambda}^\mathrm{T} (A_1x-b_1)-{\mu}^\mathrm{T} (A_2x-b_2)\\
+         &=\frac{1}{2}x^\mathrm{T} Qx+x^\mathrm{T} (c-A^\mathrm{T} w)+b^\mathrm{T} w
+        \end{align*}
+        \par
+        若$Q^\mathrm{T} =Q\succ 0$，则Lagrange对偶函数$\theta(\lambda,\mu)=\mathop {\inf}\limits_{x \in R^n}L(x,\lambda,\mu)$存在，并且对应的最小点$x^*$满足
+        \begin{align*}
+         {\nabla}_xL=Qx+c-A^\mathrm{T} w=0
+        \end{align*}
+        于是
+        \begin{align*}
+         x=-Q^{-1}(c-A^\mathrm{T} w)
+        \end{align*}
+        将其代入Lagrange函数，有
+        \begin{align*}
+        & \mathop{\max}\limits_{\lambda \geqslant 0}\  \theta(\lambda,\mu)=-\frac 12(c-A^\mathrm{T} w)^\mathrm{T} Q^{-1}(c-A^\mathrm{T} w)+b^\mathrm{T} w
+        \end{align*}
+        即
+        \begin{align}
+        \label{对偶问题的拉格朗日函数1}
+        & \mathop{\max}\limits_{\lambda \geqslant 0}\  \theta(\lambda,\mu)=-\frac 12w^\mathrm{T} (AQ^{-1}A^\mathrm{T} )w+w^\mathrm{T} (b+AQ^{-1}c)-\frac 12 c^\mathrm{T} Q^{-1}c
+        \end{align}
+        其中：$w=(\lambda,\mu)^\mathrm{T} $。
+        \par
+        如果令$y=c-A^\mathrm{T} w$，则有
+        \begin{align}
+          \label{对偶问题的拉格朗日函数2}
+          & \mathop{\max}\limits_{y,w}\  \theta(\lambda,\mu)=-\frac 12y^\mathrm{T} Q^{-1}y+b^\mathrm{T} w\\
+          & s.t.\left\{
+            \begin{aligned}
+                &A^\mathrm{T} w+y=c\\
+                &w=(\lambda,\mu)^\mathrm{T} \\
+                &\lambda \geqslant 0
+            \end{aligned}
+          \right.\notag
+        \end{align}
+        上面的式(\ref{对偶问题的拉格朗日函数1})(\ref{对偶问题的拉格朗日函数2})为二次规划对偶的两种形式。值得一提的是，上面要求二次规划的$Q$为正定，即原二次规划为凸。为了得到适用性更广泛的对偶形式，令$y=Qz$，则有
+        \begin{align*}
+          & \mathop{\max}\limits_{y,w}\ \theta(\lambda,\mu)=-\frac 12z^\mathrm{T} Qz+b^\mathrm{T} w\\
+          & s.t.\left\{
+            \begin{aligned}
+                &A^\mathrm{T} w+Qz=c\\
+                &w=(\lambda,\mu)^\mathrm{T} \\
+                &\lambda \geqslant 0
+            \end{aligned}
+          \right.
+        \end{align*}
+        此时，矩阵$Q$可以是半正定的。
+        \par
+        对于原问题和对偶问题，有
+        \begin{align*}
+        f(x)-\theta(\lambda,\mu)&=c^\mathrm{T} x-b^\mathrm{T} w+\frac{1}{2}x^\mathrm{T} Qx+\frac{1}{2}y^\mathrm{T} Q^{-1}y\\
+        &={\lambda}^\mathrm{T} (A_1x-b_1)+\frac{1}{2}(x^\mathrm{T} Qx+y^\mathrm{T} Q^{-1}y+2x^\mathrm{T} y) \geqslant 0
+        \end{align*}
+        当且仅当$A{\lambda}^\mathrm{T} (A_1x-b_1)=0,x=-Q^{-1}y$时，$f(x)-\theta(\lambda,\mu)=0$。对于严格凸二次规划，记可行域为$S$，则$x^* \in S$为最优解，当且仅当$\exists {\lambda}^* \geqslant 0,{\mu}^*$使得$(x^*,{\lambda}^*,{\mu}^*)$为Lagrange函数$L(x,\lambda,\mu)$的鞍点，即对$\forall x \in S,\forall \lambda \geqslant 0$，有
+        \begin{align*}
+        L(x^*,{\lambda},{\mu}) \leqslant L(x^*,{\lambda}^*,{\mu}^*) \leqslant L(x,{\lambda}^*,{\mu}^*)
+        \end{align*}
+\section{最优化算法}
+    \subsection{Lagrange方法}
+        \par
+        考虑只含等式约束的二次规划问题
+        \begin{align*}
+          & \mathop{\min}\limits_{x}\  \frac 12x^\mathrm{T} Qx+c^\mathrm{T} x\\
+          & s.t.\quad Ax=b
+        \end{align*}
+        其中：$c,x \in R^n$，$Q \in R^{n \times n}$为对称矩阵，$A \in R^{m \times n}$，$rank(A)=m$，$b \in R^m$。首先，写出Lagrange函数
+        \begin{align*}
+         L(x,\lambda)=\frac{1}{2}x^\mathrm{T} Qx+c^\mathrm{T} x-{\lambda}^\mathrm{T} (Ax-b)
+        \end{align*}
+        令
+        \begin{align*}
+         &{\nabla}_xL(x,\lambda)=0\\
+         &{\nabla}_{\lambda}L(x,\lambda)=0
+        \end{align*}
+        得到方程组
+        \begin{align*}
+         &Qx+c-A^\mathrm{T} \lambda=0\\
+         &-Ax+b=0
+        \end{align*}
+        将上述方程写为矩阵形式
+        \begin{align}
+        \label{最优化算法1}
+        \begin{bmatrix} Q & -A^\mathrm{T}  \\
+        -A & 0 \end{bmatrix}\begin{bmatrix} x\\\lambda \end{bmatrix}=\begin{bmatrix}-c \\ -b \end{bmatrix}
+        \end{align}
+        系数矩阵
+        \begin{math}
+        \left(
+        \begin{smallmatrix} Q & -A^\mathrm{T}  \\
+        -A & 0 \end{smallmatrix}
+        \right)
+        \end{math}
+        称为Lagrange矩阵。设上述Lagrange矩阵可逆，表示为
+        \begin{align*}
+        \begin{bmatrix} Q & -A^\mathrm{T}  \\
+        -A & 0 \end{bmatrix}^{-1} = \begin{bmatrix} H & -R^\mathrm{T}  \\
+        -R & S \end{bmatrix}=I_{m+n}
+        \end{align*}
+        由此可以
+        % \begin{align*}
+        % \begin{bmatrix} Q & -A^\mathrm{T}  \\
+        % -A & 0 \end{bmatrix}^{-1} = \begin{bmatrix} H & -R^\mathrm{T}  \\
+        % -R & S \end{bmatrix}
+        % \end{align*}
+        推得
+        \begin{align*}
+         -QH+A^\mathrm{T} R &= I_n \\
+         -QR^\mathrm{T} -A^\mathrm{T} S &= O_{m\times n} \\
+         -AH &=O_{n\times m}\\
+         AR^\mathrm{T} &=I_m
+        \end{align*}
+        假设$Q^{-1}$存在，则有
+        \begin{align*}
+        & H = Q^{-1}-Q^{-1}A^\mathrm{T} (Q^{-1}A^\mathrm{T} )AQ^{-1} \\
+        & R = (AQ^{-1}A^\mathrm{T} )^{-1}AQ^{-1} \\
+        & S = (AQ^{-1}A^\mathrm{T} )^{-1}
+        \end{align*}
+        在方程组(\ref{最优化算法1})的两边乘上Lagrange矩阵的逆，得到问题的解
+        \begin{align*}
+        & x^* = -Hc+R^\mathrm{T} b \\
+        & {\lambda}^*=Rc-Sb
+        \end{align*}
+    \subsection{内点算法}
+        \par
+        Ye.Tse于1989年给出二次规划的内点算法。考虑凸二次规划问题
+        \begin{align*}
+        & \mathop{\min}\limits_{x} \ f(x) = \frac 12x^\mathrm{T} Qx+c^\mathrm{T} x\\
+        & s.t.\left\{
+        \begin{aligned}
+        &A^\mathrm{T}x=b\\
+        &x \geqslant 0
+        \end{aligned}
+        \right.
+        \end{align*}
+        设已有$x_k$是一内点，即
+        \begin{align*}
+             &A^\mathrm{T} x_k=b\\
+             &x_k > 0
+        \end{align*}
+        定义矩阵
+        \begin{align*}
+        D_k=\begin{bmatrix} (x_k)_1 & \cdots & 0 \\
+        \vdots & \ddots & \vdots \\0 & \cdots & (x_k)_n\end{bmatrix} = diag(x_k)
+        \end{align*}
+        作变量代换$\hat{x}:=T_kx$，如下
+        \begin{align*}
+        & {\hat{x}}_i=\frac{(n+1)(D_k^{-1}x)_i}{e^\mathrm{T} D_k^{-1}x+1}\quad i=1,2,\ldots,n\\
+        & {\hat{x}}_{n+1}=(n+1)/[e^\mathrm{T} D_k^{-1}x+1]
+        \end{align*}
+        则将原问题转化为
+        \begin{align}
+        \label{原问题的转化1}
+        &\mathop {\min}\limits_{\hat{x}\in R^{n+1}}\  {\hat{x}}_{n+1}Q(T_k^{-1}\hat{x})\\
+        &s.t.\left\{
+        \begin{aligned}
+        &A^\mathrm{T} D_k \hat{x}[n] - \hat{x}_{n+1}b = 0\\
+        &e^\mathrm{T}\hat{x} = n+1\\
+        &\hat{x}[n] \geqslant 0\\
+        &{\hat{x}}_{n+1}>0
+        \end{aligned}
+        \right.
+        \end{align}
+        其中：$e=(1,1,\ldots,1)^\mathrm{T} $，$\hat{x}[n]=({\hat{x}}_1,{\hat{x}}_1,\ldots,{\hat{x}}_n)^\mathrm{T} $。
+        并且由上面的变量代换，我们有
+        \begin{align*}
+        x=T_k^{-1}{\hat{x}}=D_k\hat{x}[n]/{\hat{x}}_{n+1}
+        \end{align*}
+        所以
+        \begin{align*}
+        &\mathop {\min}\ {\hat{C}}_{k}{\hat{x}}[n]+\frac 12 {\hat{x}}[n]^\mathrm{T} {\hat{Q}}_k{\hat{x}}[n]/{\hat{x}}_{n+1}\\
+        &s.t.\left\{
+        \begin{aligned}
+        &{\hat{A}}_k^\mathrm{T}  {\hat{x}} = \hat{b}\\
+        &\hat{x}[n] \geqslant 0\\
+        &{\hat{x}}_{n+1}>0
+        \end{aligned}
+        \right.
+        \end{align*}
+        其中：
+        \begin{align*}
+        &{\hat{Q}}_k=D_kQD_k,\quad {\hat{C}}_k=D_kc\\
+        &{\hat{A}}_k = \begin{bmatrix}D_k^TA_k&e\\-b^\mathrm{T} &e \end{bmatrix},\quad
+        {\hat{b}}=\begin{pmatrix}0\\\vdots\\0\\n+1 \end{pmatrix}
+        \end{align*}
+        \par
+        对于所给的已知迭代点$x_k$，有$\hat{x}=e$。所以我们有理由考虑在$\hat{x}=e$附近求解上述问题。于是，把$\hat{x}[n] \geqslant 0,{\hat{x}}_{n+1}>0$加强为$\|\hat{x}-e\|_2 \leqslant \beta < 1$，$\beta$为与$k$无关的正常数。利用KKT条件，我们知道，求解强化后的问题，等价于求解
+        \begin{align}
+        &{\hat{C}}_k+{\hat{x}}_{n+1}^{-1}{\hat{Q}}_k{\hat{x}}[n]={\hat{A}}_k[n]\lambda+\mu({\hat{x}}[n]-e)\label{eqa}\\
+        &-\frac 12 \frac {1}{{{\hat{x}}_{n+1}}^{2}}{\hat{x}}[n]^\mathrm{T} {\hat{Q}}_k{\hat{x}}[n]=\left( {\hat{a}}_{n+1}^{(k)} \right) ^\mathrm{T} \lambda + \mu({\hat{x}}_{n+1}-1)=0\label{eqb}\\
+        &{\hat{A}}_k^\mathrm{T}  {\hat{x}} = {\hat{b}}\label{eqc}\\
+        &\|\hat{x}-e\|_2 \leqslant \beta \label{eqd}\\
+        &\mu\left[\|\hat{x}-e\|_2 - \beta \right] = 0,\mu \leqslant 0\label{eqe}
+        \end{align}
+        其中：${\hat{A}}_k[n]$是${\hat{A}}_k$的前$n$行组成的矩阵，${\hat{a}}_{n+1}^{(k)}$是${\hat{A}}_k$的第$n+1$行，将式(\ref{eqa})-(\ref{eqe})写成矩阵形式
+        \begin{align}
+        \label{矩阵形式}
+        P_k\begin{bmatrix}{\hat{x}}[n]\\ \hat{\lambda} \end{bmatrix}={\hat{x}}_{n+1}\hat{b}+\bar{b}
+        \end{align}
+        其中：
+        \begin{align*}
+        &P_k = \begin{bmatrix}{\hat{Q}}_k+{\hat{\mu}}I&-{\hat{A}}_k[n]\\{\hat{A}}[n]&0 \end{bmatrix}\\
+        &\hat{b} = \begin{bmatrix}{\hat{C}}_k\\b\\-1 \end{bmatrix}\quad \bar{b} = \begin{bmatrix}{\hat{\mu}}_e\\0\\n+1 \end{bmatrix}\\
+        &{\hat{\lambda}}={\hat{x}}_{n+1}\lambda,\ \hat{\mu} = -\hat{x}_{n+1}\mu
+        \end{align*}
+        于是，对任何给定的${\hat{\mu}} \geqslant 0$，我们可由(\ref{矩阵形式})求得${\hat{\lambda}}$和${\hat{x}}[n]$。然后，将求得的${\hat{\lambda}}{\hat{x}}[n]$代入(\ref{eqb})即可得到${\hat{x}}_{n+1}$。于是，对任何${\hat{\mu}} \geqslant 0$，都可求得${\hat{x}}(\hat{\mu})$。定义函数
+        \begin{align*}
+        h(\hat{\mu})=\|\hat{x}(\hat{\mu})-e\|_2 - \beta
+        \end{align*}
+        如果$h(0) \leqslant 0$，则$\hat{x}(0)$为上面函数的解。之后，$x=D_k\hat{x}(0)[n]/{\hat{x}(0)}_{n+1}$是原问题的解。如果$h(0)>0$，由于$\mathop {\lim}\limits_{\mu \to \infty}h(\mu)=-\beta<0$，可用方法求解${\hat{\mu}}_k$使得$h({\hat{\mu}}_k)=0$，从而可以得到强化后问题的解${\hat{x}}({\mu}_k)$，将其变换回去即可得到$x_{k+1}$。
+        \begin{align*}
+        x_{k+1}=T_k^{-1}\hat{x}({\hat{\mu}}_k) = \frac{D_k\hat{x}({\hat{\mu}}_k)[n]}{{\hat{x}({\hat{\mu}}_k)}_{n+1}}
+        \end{align*}
+        其中：$\hat{x}({\hat{\mu}}_k)[n]=(\hat{x}({\hat{\mu}}_k)_1,\ldots,\hat{x}({\hat{\mu}}_k)_n)^\mathrm{T} $。
+\section{MATLAB应用实例}
+    \par
+    MATLAB中用quadprog命令求解二次规划问题。其调用格式为
+    \par
+    [x,fval,exitflag,output,lambda]=quadprog(H,f,A,b,Aeq,beq,lb,ub,x0,options)\\
+    其中：H为Hesse矩阵；f为c，$c^\mathrm{T} x$；lambda：目标函数在极点$x$处的Lagrange乘子。
+    \par
+    用quadprog求解如下二次规划问题
+    \begin{align*}
+    &\mathop {\min}\limits_x \ f=3 x_1^2+2x_2^2+3x_1-4x_2\\
+    &s.t.\left\{
+    \begin{aligned}
+    &2x_1+x_2 \leqslant 4\\
+    &-2x_1+2x_2 \leqslant 4\\
+    &x_1 \geqslant 0,x_2 \geqslant 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    求解程序如下
+    \begin{lstlisting}[language=Matlab]
+    H = [6,-4;-4,4];
+    f = [3,-4];
+    A = [2,1;-1,2];
+    b = [4;4];
+    lb = [0,0];
+    ub = [];
+    [x, fval] = quadprog(H,f,A,b,[],[],lb,ub)
+    \end{lstlisting}
+\section{组合投资问题的混合整数规划}
+    \par
+    前面的引例(\ref{sec:二次规划引例})中，我们介绍了最基本的组合投资模型。下面，我们将进一步引申到混合二次整数规划。对于普通二次规划
+    \begin{align*}
+    &\mathop {\min}\limits_x \  \lambda x^\mathrm{T} Qx-r^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\sum\limits_i x_i=1\\
+    &0 \leqslant x_i\leqslant 1\\
+    &i=1,2,\ldots,n
+    \end{aligned}
+  \right.
+    \end{align*}
+    增设变量$v_i$，使
+    \begin{align*}
+    v_i=\left\{
+    \begin{aligned}
+    & 0 \quad x_i= 0\\
+    & 1 \quad x_i> 0
+    \end{aligned}
+    \right.
+    \end{align*}
+    并且要求
+    \begin{align*}
+    &m \leqslant \mathop {\sum}\limits_i v_i \leqslant M\\
+    \end{align*}
+    其中：$m,M$为常量。
+    \par
+    然后，我们要求$x_i$的取值在$f_{min}i$和$f_{max}i$之间。重写组合投资问题为
+    \begin{align*}
+    &\mathop {\min}\limits_x\ \lambda x^\mathrm{T} Qx-r^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &\mathop {\sum}\limits_i x_i=1\\
+    &v_i=0/1\\
+    &m \leqslant \mathop {\sum} v_i \leqslant M\\
+    &v_if_{min}i \leqslant x_i \leqslant v_if_{max}i
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    上述问题是以0-1变量$v$的二次规划问题。对于混合规划问题，MATLAB目前为止只能求解混合线性整数规划。所以，我们要想办法将二次规划转化为线性规划。设置一个$z$变量，让$z$来逼近$x^\mathrm{T} Qx$。
+    \begin{align*}
+    &\mathop {\min}\limits_{x,z} \ \lambda z-r^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &x^\mathrm{T} Qx-z \leqslant 0\\
+    &z \geqslant 0\\
+    &x^\mathrm{T} e=1\\
+    &v=0/1\\
+    &m\leqslant v^\mathrm{T} e \leqslant M\\
+    &v_if_{min}i \leqslant x_i \leqslant v_if_{max}i
+    \end{aligned}
+    \right.
+    \end{align*}
+    \par
+    虽然现在已经将目标函数变为线性，但其约束中仍有二次函数。下面，我们来处理$x^\mathrm{T} Qx-z$。将$x^\mathrm{T} Qx-z$在$x_0$处一阶泰勒展开，有
+    \begin{align*}
+    x^\mathrm{T} Qx-z=x_0^\mathrm{T} Qx_0+2x_0^\mathrm{T} Q\delta-z+O(||\delta||^2)
+    \end{align*}
+    用$x-x_0$来代替$\delta$，有
+    \begin{align*}
+    x^\mathrm{T} Qx-z=-x_0^\mathrm{T} Qx_0+2x_0^\mathrm{T} Qx-z+O(|x-x_0|^2)
+    \end{align*}
+    \par
+    现在的$x^\mathrm{T} Qx-z$就变为关于$x$的线性函数。对于$x_k$，有
+    \begin{align*}
+    -x_k^\mathrm{T} Qx_k+2x_k^\mathrm{T} Qx-z \leqslant 0
+    \end{align*}
+    将上式写成$Ax \leqslant b$的标准形式，有
+    \begin{align*}
+    &A=2x_k^\mathrm{T} Q\\
+    &b=x_k^\mathrm{T} Qx_k
+    \end{align*}
+    即，在求$x_{k+1}$时，要利用已知的$x_k$。于是，原混合整数二次规划变为
+    \begin{align*}
+    &\mathop {\min}\limits_{x,z}\  \lambda z-r^\mathrm{T} x\\
+    &s.t.\left\{
+    \begin{aligned}
+    &Ax-z \leqslant b\\
+    &z \geqslant 0\\
+    &x^\mathrm{T} e=1\\
+    &v=0/1\\
+    &m\leqslant v^\mathrm{T} e \leqslant M\\
+    &v_i\cdot lb \leqslant x_i \leqslant ub\cdot v_i
+    \end{aligned}
+    \right.
+    \end{align*}
+    其中：$A,b$如上定义。MATLAB求解程序如下
+    \begin{lstlisting}[language = Matlab]
+    %% 混合整数规划求解组合投资问题
+    %加载数据
+    load port5
+    r = mean_return;
+    Q = Correlation .* (stdDev_return * stdDev_return');
+    N = length(r);
+    xvars = 1:N;
+    vvars = N+1:2*N;
+    zvar = 2*N+1;
+    lb = zeros(2*N+1,1);
+    ub = ones(2*N+1,1);
+    ub(zvar) = Inf;
+    M = 150;
+    m = 100;
+    A = zeros(1,2*N+1); % Allocate A matrix
+    A(vvars) = 1; % A*x represents the sum of the v(i)
+    A = [A;-A];
+    b = zeros(2,1); % Allocate b vector
+    b(1) = M;
+    b(2) = -m;
+    fmin = 0.001;
+    fmax = 0.05;
+    Atemp = eye(N);
+    Amax = horzcat(Atemp,-Atemp*fmax,zeros(N,1));
+    A = [A;Amax];
+    b = [b;zeros(N,1)];
+    Amin = horzcat(-Atemp,Atemp*fmin,zeros(N,1));
+    A = [A;Amin];
+    b = [b;zeros(N,1)];
+    Aeq = zeros(1,2*N+1); % Allocate Aeq matrix
+    Aeq(xvars) = 1;
+    beq = 1;
+    lambda = 100;
+    f = [-r;zeros(N,1);lambda];
+    options = optimoptions(@intlinprog,'Display','off'); % Suppress iterative display
+    [xLinInt,fval,exitFlagInt,output] = intlinprog(f,vvars,A,b,Aeq,beq,lb,ub,options);
+    thediff = 1e-4;
+    iter = 1; % iteration counter
+    assets = xLinInt(xvars); % the x variables
+    truequadratic = assets'*Q*assets;
+    zslack = xLinInt(zvar); % slack variable value
+    while abs((zslack - truequadratic)/truequadratic) > thediff % relative error
+        newArow = horzcat(2*assets'*Q,zeros(1,N),-1); % Linearized constraint
+        A = [A;newArow];
+        b = [b;truequadratic];
+        % Solve the problem with the new constraints
+        [xLinInt,fval,exitFlagInt,output] = intlinprog(f,vvars,A,b,Aeq,beq,lb,ub,options);
+        assets = (assets+xLinInt(xvars))/2; % Midway from the previous to the current
+    %     assets = xLinInt(xvars); % Use the previous line or this one
+        truequadratic = assets'*Q*assets;
+        zslack = xLinInt(zvar);
+        history = [history;truequadratic,zslack];
+        iter = iter + 1;
+    end
+    plot(history)
+    legend('Quadratic','Slack')
+    xlabel('Iteration number')
+    title('Quadratic and linear approximation (slack)')
+    disp(output.absolutegap)
+    bar(xLinInt(xvars))
+    grid on
+    xlabel('Asset index')
+    ylabel('Proportion of investment')
+    title('Optimal asset allocation')
+    sum(xLinInt(vvars))
+    fprintf('The expected return is %g, and the risk-adjusted return is %g.\n',...
+        r'*xLinInt(xvars),-fval)
+    \end{lstlisting}
+

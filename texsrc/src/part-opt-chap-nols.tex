@@ -1,0 +1,148 @@
+% % \part{优化模型}
+% % \chapter{非线性最小二乘优化}
+
+\chapter{非线性最小二乘优化}
+\section{理论基础}
+    \par
+    下面来看一个特别的无约束非线性规划 - 非线性最小二乘优化。此优化问题在数据拟合、参数估计和函数逼近等问题中经常遇到，有较高的应用价值。设$r_i(x):R^n \rightarrow R$是$x$的函数$(i=0,1,2,\ldots,m)$，最小二乘问题描述为
+    \begin{align*}
+     \mathop {\min}\limits_x \ f(x)=\frac 12 r(x)^{\mathrm{T}}r(x)=\frac 12 \mathop {\sum}\limits_{i=1}^m [r_i(x)]^2 \quad m \geqslant n
+    \end{align*}
+    \par
+    (1)如果$r_i(x)$是$x$的线性函数
+    \begin{align*}
+     r_i(x)=a_i^\mathrm{T} x-b_i
+    \end{align*}
+    其中：$a_i \in R^n,b_i \in R$，则称为线性最小二乘规划问题。容易证明，线性最小二乘问题是一个\underline{凸二次规划}。
+    \par
+    (2)如果$r_i(x)$是$x$的非线性函数，则称为非线性最小二乘规划。由于最小二乘优化是无约束非线性规划的一个特例，所以前面介绍的方法也可以适用，但由其特殊性，因此，它会有些适用于自身的特殊的方法。下面，我们将介绍一些求解非线性最小二乘的算法。我们先来给出$r(x)$的Jacobi矩阵的定义：
+    \begin{definition}[Jacobi矩阵]
+    连续函数$r:R^n \rightarrow R^m$在$x \in R^n$连续可微，如果其每一个分量$r_i(x)$在$x$连续可微。$r$在$x$的导数$r'(x)\in R^{m\times n}$叫做$r$在$x$的Jacobi矩阵，它的转置叫做$r$在$x$的梯度，即
+    \begin{align*}
+    r'(x)=J(x)=\nabla r(x)^\mathrm{T}
+    \end{align*}
+    Jacobi矩阵的第$i,j$元素为
+    \begin{align*}
+    [r'(x)]_{ij} = [J(x)]_{ij} = \frac{\partial r_i}{\partial x_j}(x) \quad i=1,\dots,m,j = 1,\dots,n
+    \end{align*}
+    \end{definition}
+    \par
+    设$J(x)$为$r(x)$的Jacobi矩阵，则目标函数$f$的梯度为
+    \begin{align*}
+     g(x)=\mathop {\sum}\limits_{i=1}^m r_i(x)\nabla r_i(x)=J(x)^\mathrm{T} r(x)
+    \end{align*}
+    $f$的Hesse矩阵为
+    \begin{align*}
+     G(x)&=\mathop {\sum}\limits_{i=1}^m (\nabla r_i(x)\nabla r_i(x)^\mathrm{T}  + r_i(x){\nabla}^2 r_i(x))\\
+     &=J(x)^\mathrm{T} J(x)+s(x)
+    \end{align*}
+    其中：
+    \begin{align*}
+     s(x)=\mathop {\sum}\limits_{i=1}^m r_i(x){\nabla}^2 r_i(x)
+    \end{align*}
+    \par
+    上面，我们给出了目标函数$f$的梯度$g(x)$和Hesse矩阵$G(x)$。我们写出目标函数$f$的二次模型
+    \begin{align*}
+     m_k(x)&=f(x_k)+g(x_k)^\mathrm{T} (x-x_k)+\frac 12 (x-x_k)^\mathrm{T} G(x_k)(x-x_k)\\
+     &=\frac 12 r(x_k)^\mathrm{T} r(x_k)+(J(x_k)^\mathrm{T} r(x_k))^\mathrm{T} (x-x_k)\\
+     &\quad +\frac 12(x-x_k)^\mathrm{T} (J(x_k)^\mathrm{T} J(x_k)+s(x_k))(x-x_k)
+    \end{align*}
+    从而，解决非线性最小二乘的牛顿法为
+    \begin{align*}
+     x_{k+1}=x_k-(J(x_k)^\mathrm{T} J(x_k)+s(x_k)^{-1}J(x_k)r(x_k))
+    \end{align*}
+    \par
+    我们知道牛顿法具有二阶收敛速度，但是，上述牛顿迭代格式的主要问题是Hesse矩阵$G(x)$中的二阶信赖域$s(x)$通常难以计算。而如果仅对$G(x)$近似(拟牛顿)又有些浪费，毕竟，我们在计算$g(x)$时已经得到$J(x)$，而$J^\mathrm{T} (x)J(x)$是$G(x)$的一阶信息项。鉴于此，我们或者忽略$s(x)$，或者用一阶导数信息逼近$s(x)$。
+\section{Gauss-Newton法}
+    \par
+    下面介绍的Gauss-Newton法相当于目标函数的二次模型$m_k(x)$中忽略$G(x)$中的二阶信息项$s(x)$，这样$m_k(x)$变为
+    \begin{align}
+    \label{eqGauss-Newton1}
+     \bar{m_k}(x)&=\frac 12 r(x_k)^\mathrm{T} r(x_k)+(J(x_k)^\mathrm{T} r(x_k))^\mathrm{T} (x-x_k)\notag \\
+                &\quad +\frac 12 (x-x_k)^\mathrm{T} (J(x_k)^\mathrm{T} J(x_k))(x-x_k)
+    \end{align}
+    由此得到的牛顿迭代公式为
+    \begin{align*}
+     x_{k+1}&=x_k-(J(x_k)^\mathrm{T} J(x_k))^{-1}J(x_k)r(x_k)\\
+     &=x_k+s_k
+    \end{align*}
+    其中：$s_k=-(J(x_k)^\mathrm{T} J(x_k))^{-1}J(x_k)r(x_k)$。
+    \par
+    而模型(\ref{eqGauss-Newton1})相当于$r(x)$在$x_k$附近的仿射模型
+    \begin{align*}
+    \tilde{M_k}(x)&=r(x_k)+J(x_k)(x-x_k)
+    \end{align*}
+    从而求下面线性最小二乘问题的解
+    \begin{align*}
+    \min \ \frac 12 \|\tilde{M_k}(x)\|^2
+    \end{align*}
+    的解。
+    \par
+    从Gauss-Newton法的迭代公式中可以看出，该方法仅需要残差函数$r(x)$的一阶导数信息，并且$J(x)^\mathrm{T} J(x)$至少是正半定的。
+    \par
+    如果$s(x^*)=0$，则G-N方法是二阶收敛的。如果$s(x^*)$相当于$J(x^*)^\mathrm{T} J(x^*)$是小的，则$G(x)$方法是局部\textit{Q}线性收敛的。但如果$s(x^*)$太大，则G-N方法可能不收敛。下面，我们给出G-N方法的优缺点：
+    \par
+    (1) 当$r(x^*)=0$时，有局部二阶收敛速度；
+    \par
+    (2) 当$r(x^*)$较小时，有快的局部收敛速度；
+    \par
+    (3) 当$r(x^*)$不是很大时，有较慢的局部收敛速度；
+    \par
+    (4) 当$r(x^*)$很大时，有不收敛；
+    \par
+    (5) 如果$J(x_k)$不满秩，方法没有定义；
+    \par
+    (6) G-N不一定总体收敛。
+\section{Levenerg-Marquardt}
+    \par
+    在Gauss-Newton方法中，我们要求$J(x^*)$是满秩的。遗憾的是，$J(x^*)$不满秩的情况是经常发生的。一旦$J(x^*)$奇异，则在距离解点的某处，$s_k$与$g_k$便数值上直交（正交）。这样，由线搜索就得不到进一步下降，为了克服这种困难，考虑采用信赖域策略。其理由是：通常$r(x)$是非线性函数，而Gauss-Newton法用线性化模型$\tilde{M_k}(x)$代替$r(x)$，但这种线性化并不对所有$(x-x_k)$都成立，因此，我们考虑约束线性最小二乘问题，即考虑信赖域模型：
+    \begin{align*}
+    &\min\  \|r(x_k)+J(x_k)(x-x_k)\|_2\\
+    &s.t.\quad \|x-x_k\|_2 \leqslant h_k
+    \end{align*}
+    由前面的信赖域算法，我们知道这个模型的解可以由解方程组
+    \begin{align*}
+    (J(x_k)^\mathrm{T} J(x_k)+{\mu}_kI)s=-J(x_k)^\mathrm{T} r(x_k)
+    \end{align*}
+    来表示，从而
+    \begin{align*}
+    x_{k+1}=x_k-(J(x_k)^\mathrm{T} J(x_k)+{\mu}_kI)^{-1}J(x_k)^\mathrm{T} r(x_k)
+    \end{align*}
+    如果$\|J(x_k)^\mathrm{T} J(x_k))^{-1}J(x_k)^\mathrm{T} r(x_k)\| \leqslant h_k$，则${\mu}_k=0$，否则${\mu}_k>0$。由于$J(x_k)^\mathrm{T} J(x_k)+{\mu}_kI$正定，所以上面信赖域模型产生的方向$s$是下降的，此方向由Levenberg(1944)和Marqurdt(1963)提出，所以又称L-M方法。
+\section{MATLAB应用实例}
+    \par
+    MATLAB中用lsqnonlin函数来求解非线性最小二乘优化问题，其调用格式为
+    \par
+    [x,resnorm,residual,exitflag,output,lambda,jacobian]=lsqnonlin(fun,x0,lb,ub,options)
+    \par
+    其中：resnorm为残差平方和，也即为最小值$r(x)^\mathrm{T} r(x)$；residual为残差$r(x)$；lambda返回最优解$x$处的拉格朗日乘子；jacobian为最优解$x$处的雅克比矩阵。
+    \par
+    我们用lsqnonlin求解如下非线性最小二乘问题
+    \begin{align*}
+    \mathop {\min}\limits_x f^2(x)=\mathop {\sum}\limits_{i=1}^m f_i^2(x)
+    \end{align*}
+    其中:
+    \begin{align*}
+    f(x)=\left[
+    \begin{aligned}
+    &\sin(x_1+x_2-2)\\
+    &\frac {1}{-(x_1-3)^2+2}\\
+    &e^{2x_1}+e^{2x_2}\\
+    &x_1^2+x_2^2-x_1x_2+x_1+1
+    \end{aligned}
+    \right]
+    \end{align*}
+    求解程序为
+    \begin{lstlisting}[language=Matlab]
+    x0 = [0,0];
+    fun = @(x)[
+        sin(x(1)+x(2)-2);
+        1/(2-(x(1)-3)^2);
+        exp(2(x(1))+exp(2-x(2));
+        x(1)^2+x(2)^2-x(1)*x(2)+x(1)+1];
+    options = optimoptions('lsqnonlin','Display','iter');
+    options.Algorithm = 'Levenberg-Marquardt'
+    [x,resnorm,residual,exitflag,output,lambda,jacobian] = lsqnonlin(fun,x0,IJ,IJ,options)
+    \end{lstlisting}
+
+
