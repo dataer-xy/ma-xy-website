@@ -24,10 +24,10 @@ footer: MIT Licensed | Copyright © 2018-present Song Yanyi
 
 
 
-::: tip 推荐 TODO
-[dataset-xy](https://www.dataset-xy.com)  为机器学习模型提供数据支持。
+::: tip 推荐
+[dataset-xy](http://www.dataset-xy.com)  为机器学习模型提供数据支持，为数据分析人员提供多数据源融合IO。
 
-[trainer-xy](https://www.trainer-xy.com)  为机器学习模型提供灵活的仪表盘 dashboard。
+[trainer-xy](http://www.trainer-xy.com)  为机器学习模型提供灵活的仪表盘 dashboard。
 
 :::
 
@@ -40,6 +40,8 @@ footer: MIT Licensed | Copyright © 2018-present Song Yanyi
 为了保证尽可能多的人来提交，该网站内容将尽可能的遵循 MIT 协议。
 
 当然，如果作者觉得所写内容非常有价值，也可以提供预览版，之后付费查看整体。
+
+内容可以随意，但网站 logo 版权归 @宋焱燚 个人所有
 :::
 
 <Foot/>
