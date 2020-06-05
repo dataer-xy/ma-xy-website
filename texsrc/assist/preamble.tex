@@ -124,7 +124,14 @@
 
 %% 页眉页脚设置
 \usepackage{fancyhdr} % 页眉设置
-\pagestyle{headings} % 页眉为章节标题，无页脚
+%%\pagestyle{headings}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}                                          
+\fancyfoot[L]{\url{http://www.ma-xy.com}}
+\fancyfoot[R]{\url{http://www.ma-xy.com}}
+\renewcommand{\footrulewidth}{0pt}     
 
 %% 章节格式设置
 \CTEXsetup[format={\zihao{-3}\raggedright\bfseries}]{section} % 设置节的格式
@@ -132,9 +139,10 @@
 
 %% 水印
 \usepackage{draftwatermark} 	%水印draft
-\SetWatermarkScale{1}		%设置水印的显示大小
+\SetWatermarkText{http://www.ma-xy.com}
+\SetWatermarkScale{0.5}
 %\SetWatermarkAngle{45}
 %\SetWatermarkColor{black!60!cyan!20}
 %\SetWatermarkFontSize{4cm}
-%\SetWatermarkText{WATERMARK}
+
 
