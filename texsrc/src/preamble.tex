@@ -1,0 +1,148 @@
+
+\ctexset{
+    part/number = \chinese{part}
+}
+%% 符号及公式设置
+\usepackage{multirow}
+\usepackage{amsmath} % ams 数学公式
+\usepackage{amsfonts} % ams 数学字体
+\usepackage{bbm} % 重影字体
+\usepackage{amssymb,latexsym} % ams 数学符号与LaTeX数学符号
+\usepackage{mathrsfs} % 花式符号
+
+%% 定理引理证明
+\usepackage{ntheorem} % 定理、定义、证明
+    \theoremstyle{nonumberplain}
+    \theoremheaderfont{\bfseries}
+    \theorembodyfont{\normalfont}
+    \theoremsymbol{$\square$}
+    \newtheorem{Proof}{\hskip 2em 证明}
+    \newtheorem{theorem}{\hspace{2em}定理}[chapter]
+    \newtheorem{definition}{\hspace{2em}定义}[chapter] % 如果没有章, 只有节, 把上面的[chapter]改成[section]
+    \newtheorem{axiom}[definition]{\hspace{2em}公理} % 类似地定义其他“题头”. 这里“注”的编号与定义、定理等是分开的
+    \newtheorem{lemma}[definition]{\hspace{2em}引理}
+    \newtheorem{proposition}[definition]{\hspace{2em}命题}
+    \newtheorem{corollary}[definition]{\hspace{2em}推论}
+    \newtheorem{remark}{\hspace{2em}注}
+    \newtheorem{Assumption}{\hspace{2em}假设}[chapter]
+    \newtheorem{example}{\hspace{2em}示例}[chapter]
+
+%% 算法伪代码
+%http://blog.csdn.net/lwb102063/article/details/53046265
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+    \floatname{algorithm}{算法}
+    \renewcommand{\algorithmicrequire}{\textbf{输入:}}
+    \renewcommand{\algorithmicensure}{\textbf{输出:}}
+
+%%  罗马数字：示例：\rom{2}
+\makeatletter
+\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+\makeatother
+
+%% 文本下划线
+\usepackage{ulem}
+
+%% 列表环境
+\usepackage{enumerate} % itemiz环境。\begin{enumerate}[step 1][a)]可以使用 A，a，I，i，1 作为可选项产生 \Alph，\alph，\Roman，\roman，\arabic 的效果
+\usepackage{enumitem} % enumerate宏包的升级
+
+%% 参考文献(上标)
+\usepackage{cite} % 参考文献
+    \bibliographystyle{plain}
+    \makeatletter
+    \def\@cite#1#2{\textsuperscript{[{#1\if@tempswa , #2\fi}]}}
+    \makeatother
+
+%% 圆圈①②，并设置圆圈脚注
+\usepackage{pifont} % 然后在正文输入\ding{172}～\ding{211}得到相应数字，要是要①就输入：\ding{172}②就输：\ding{173}
+\renewcommand\thefootnote{\ding{\numexpr171+\value{footnote}}}
+
+%% 超链接
+%\usepackage[CJKbookmarks, colorlinks, bookmarksnumbered=true,pdfstartview=FitH,linkcolor=black,citecolor=black]{hyperref}%超链接的格式设置
+\usepackage{hyperref} % 超链接
+\hypersetup{
+    colorlinks=false, % 去掉超链接颜色
+    pdfborder=0 0 0 % 取消超链接的边框
+}
+
+%% 图片
+\usepackage{graphicx} % 图片管理
+\usepackage{caption}
+\usepackage{subcaption} %并排的图各有标题
+\graphicspath{{images/}} % 设置图片搜索路径
+\usepackage{float,varwidth} % 浮动体
+\usepackage{caption} % 对标题进行控制，如让\caption标题的字体缩小一号，同时数字标签使用粗体可以用：\usepackage[font=small,labelfont=bf]{caption}
+
+%% 表格
+\usepackage{booktabs} % 三线表
+\usepackage{tabularx} % 提供自动延伸的表列，（X列格式说明符），文字过长时可以自动转行
+\usepackage{longtable} % 长表格
+\setlength{\abovecaptionskip}{4pt} % 图片表格的前后距离设置
+\setlength{\belowcaptionskip}{-8pt}
+
+\usepackage{extarrows} % 带参数的箭头
+\usepackage{xfrac,upgreek} % 分别是行间公式如a/b的形式（将原来的命令\frac改成\sfrac）和希腊字体的宏包的
+\usepackage{mathtools} % lgathered和rgathered环境把公式向左向右对齐
+\usepackage{harpoon} % 数学公式的矢量
+\usepackage{bookmark} % 目录的书签
+
+
+%% 代码高亮
+\usepackage{listings}
+\usepackage{xcolor} % 颜色宏包
+\usepackage{colortbl} % 彩色表格
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false, % 断行只在空格处
+    breaklines=true, % 自动断行
+    captionpos=b, % 标题位置
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false, % 显示
+    tabsize=2 % TAB 被当作两个空格
+}
+%% 调用PDF文件
+\usepackage{pdfpages}
+%% 页面设置
+\usepackage{geometry}
+\geometry{paperwidth=185mm,paperheight=260mm,left=15mm,right=15mm, bottom=10mm}
+% \topmargin=0pt\oddsidemargin=0pt\evensidemargin=0pt
+\raggedbottom % 让某些部分更紧凑
+
+%% 页眉页脚设置
+\usepackage{fancyhdr} % 页眉设置
+%%\pagestyle{headings}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}                                          
+\fancyfoot[L]{\url{http://www.ma-xy.com}}
+\fancyfoot[R]{\url{http://www.ma-xy.com}}
+\renewcommand{\footrulewidth}{0pt}     
+
+%% 章节格式设置
+\CTEXsetup[format={\zihao{-3}\raggedright\bfseries}]{section} % 设置节的格式
+\renewcommand{\headwidth}{\textwidth} % 图片并排，这个要列在所有宏包的后面
+
+%% 水印
+\usepackage{draftwatermark} 	%水印draft
+\SetWatermarkText{http://www.ma-xy.com}
+\SetWatermarkScale{0.5}
+%\SetWatermarkAngle{45}
+%\SetWatermarkColor{black!60!cyan!20}
+%\SetWatermarkFontSize{4cm}
+
+

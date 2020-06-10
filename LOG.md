@@ -34,6 +34,7 @@
 * pdf -- 水印 OK
 * pdf -- 修改整体tex的导言区 OK
 * pdf -- 整体上 pdf 没有引用
+* pdf -- 整体编译引用bibtex时，报错 I found no database files---while reading file main.aux
 * pdf -- 作者调整
 * pdf -- 每个 pdf 加上作者？ 嗯 是这样
 
@@ -45,4 +46,4 @@
 
 * 下载整本 以及下载量 (使用第三方免费的) https://tongji.baidu.com/web/welcome/products
 
-
+## bib 要复制到 doc 和 main.tex 下
