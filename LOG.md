@@ -43,9 +43,9 @@
 * pdf -- 封面作者调整
 * pdf -- 每个 pdf 加上作者？ 嗯 是这样
 
-* nginx 同端口 多 server (反向代理)
-* nginx https 协议 输入http:也会自动跳转至https页面
-* nginx 重启服务
+* nginx 同端口 多 server (反向代理) OK?
+* nginx https 协议 输入http:也会自动跳转至https页面 OK?
+* nginx 重启服务 OK?
 
 * 搜索框不好用了？
 * 初始化环境/部署 python
