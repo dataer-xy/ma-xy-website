@@ -53,7 +53,7 @@ module.exports = {
               'LOG',  /* /devexp/one.html */
               'TODO',
               'DEBUG',
-            //   'NEWS',
+              'CONTRIBUTE',
               'NOTES',
             //   'code-style'
             ],

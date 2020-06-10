@@ -4,6 +4,10 @@ images
 new
 __pycache__
 # 过滤掉私有的
+*.key
+*.pem
+*.zip
+scripts
 next
 artwork
 texsrc/pdf
@@ -13,3 +17,4 @@ texsrc/new
 安排
 dist
 public
+out

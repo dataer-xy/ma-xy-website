@@ -1,9 +1,9 @@
 <template>
 
     <div class="footer">
-        MIT Licensed | Copyright © 2018-present 宋焱燚(qq:1121225022)
+        MIT Licensed | Copyright © 2020 ma-xy.com
         <br>
-        站长： 王源震(qq:)，广告咨询等请联系站长
+        站长： 王源震(QQ：2432744025)，广告合作等请联系站长
     </div>
 </template>
 <script>

@@ -1,11 +1,11 @@
-# HELP  Ourselves 
+# HELP  OURSELVES 
 
 ### 方向要求
 
 * 主要方向是：计算机和数学
 
 ### 提交要求
-* 可以提交到qq(TODO) 或者直接在 github 上 pull
+* 可以提交到QQ群(561043735) 或者直接在 github 上 pull
 
 ### 书写流程要求
 * 不应该直接写

@@ -7,16 +7,15 @@
 
 %\usepackage{syntonly} % 只检测Latex代码，不输出PDF
 %\syntaxonly
-%\includeonly{
-%    src/part-mldl-chap-Stoc,
-%    src/part-svm-chap-svm1,
-%    src/part-svm-chap-svm2,
-%    src/part-mldl-chap-RVM,
-%    src/part-mldl-chap-ANN,
-%    src/part-mldl-chap-DeepLearn,
-%    src/part-mldl-chap-DeepLearn-GAN,
-%    src/part-mldl-chap-boost
-%} % 只编译某一章
+\includeonly{
+   src/part-mldl-chap-Stoc,
+   src/part-mldl-chap-svm1,
+   src/part-mldl-chap-svm2,
+   src/part-mldl-chap-RVM,
+   src/part-mldl-chap-ANN,
+   src/part-mldl-chap-DeepLearn,
+   src/part-mldl-chap-boost
+} % 只编译某一章
 
 \usepackage{import}
 
@@ -46,7 +45,6 @@
 \part{MATLAB基础与实战}
 \import{src/}{part-sxjm-chap-drawing}
 \import{src/}{part-sxjm-chap-link}
-% MATLAB建模实战
 \import{src/}{part-sxjm-chap-FBrate}
 \import{src/}{part-sxjm-chap-xueguan}
 \import{src/}{part-sxjm-chap-chaobaozuoyi}

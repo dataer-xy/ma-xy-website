@@ -7,8 +7,8 @@ import os
 
 
 basePath = r"D:\GODEYES\INCUBATORS\ma-xy-website"
-texFilePath = os.path.join(basePath,"texsrc") # tex文件路径
-
+texFilePath = os.path.join(basePath,"texsrc","src") # tex文件路径
+# texFilePath = os.path.join(basePath,"texsrc") # tex文件路径
 
 pwd = os.getcwd()
 
@@ -65,7 +65,12 @@ code = subprocess.run(
     stderr=subprocess.PIPE,
     shell=True
 )
-
+code = subprocess.run(
+    cmd, 
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    shell=True
+)
 
 
 
