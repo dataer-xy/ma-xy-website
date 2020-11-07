@@ -43,6 +43,20 @@
 * 下载整本 以及下载量 (使用第三方免费的) https://tongji.baidu.com/web/welcome/products
 * 搜索框不好用了？
 
+* 去掉dataset等信息
+* 去掉MIT
+* 去掉广告改成商务
+* 是否去掉作者
+* 改为https，并测试移动端
+* 开发说明中的限制去掉
+
+
+
+* tex 转 html 工具 deepleaning 书用的是什么工具？
+  - https://github.com/exacity/deeplearningbook-chinese
+  - https://www.deeplearningbook.org/
+  - https://github.com/coolwanglu/pdf2htmlEX
+
 
 # 部署
 * nginx 单独文件夹 （部署脚本也要改）
