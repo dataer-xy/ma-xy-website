@@ -3,7 +3,7 @@
 * 设计前端界面 OK
 * 依据前端界面考虑实现需要的技术 OK
 
-## 
+## 开发
 * 可以添加一些 表情符号 NO
 * 简介 OK
 * logo 说明 OK
@@ -38,20 +38,25 @@
 
 <!-- --------------------------------------------------------- -->
 
-* 自动编译所有 pdf 并迁移
-
 * pdf -- 封面作者调整
 * pdf -- 每个 pdf 加上作者？ 嗯 是这样
+* 下载整本 以及下载量 (使用第三方免费的) https://tongji.baidu.com/web/welcome/products
+* 搜索框不好用了？
 
+
+# 部署
+* nginx 单独文件夹 （部署脚本也要改）
+* ssl 证书 单独文件夹 （部署脚本也要改）
+* readme 中添加项目文件/文件夹/note说明
+
+* 自动编译所有 pdf 并迁移
 * nginx 同端口 多 server (反向代理) OK?
 * nginx https 协议 输入http:也会自动跳转至https页面 OK?
 * nginx 重启服务 OK?
 
-* 搜索框不好用了？
+
 * 初始化环境/部署 python
 * 自动部署 fabic OK
-
-* 下载整本 以及下载量 (使用第三方免费的) https://tongji.baidu.com/web/welcome/products
 
 
 ## 疑难杂症
