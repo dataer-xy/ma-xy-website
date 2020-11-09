@@ -18,3 +18,5 @@ texsrc/new
 dist
 public
 out
+ssl
+nginx

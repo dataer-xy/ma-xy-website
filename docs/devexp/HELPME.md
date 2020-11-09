@@ -1,11 +1,23 @@
 # HELP  OURSELVES 
 
-### 方向要求
+## 主要要求
+非必要要求
 
-* 主要方向是：计算机和数学
+### 方向要求
+* 主要方向是：包含但不限于计算机和数学
+  
+### 提交的文档类型要求
+提交的文档类型最终会被 [pandoc](https://pandoc.org/) （或者 sphinx）转化为 pdf、markdown或者html等前端可嵌入格式。优先使用以下格式
+* pdf
+* markdown
+* reStructuredText
+* tex
 
 ### 提交要求
 * 可以提交到QQ群(561043735) 或者直接在 github 上 pull
+
+## 次要要求
+非必要要求
 
 ### 书写流程要求
 * 不应该直接写

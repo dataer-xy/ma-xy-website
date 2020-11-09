@@ -22,9 +22,13 @@
 * 首页 -- 推荐 dataset-xy 的描述再添加一些 OK
 * 首页 -- FOOT 协议 以及 logo 版权 OK
 * 首页 -- 站长信息 OK
-
+* 首页 --  去掉dataset等信息 OK
+* 首页 --  去掉MIT OK
+* 首页 --  去掉广告改成商务 OK
 
 * 章节 -- 作者调整（作者要详细分类）OK
+
+* devexp -- 开发说明中的限制去掉 OK
 
 * buildpdf -- 介绍 OK
 * buildpdf -- 只重新编译pdf，不改变已有结构 OK
@@ -37,40 +41,40 @@
 * pdf -- 修改整体tex的导言区 OK
 
 <!-- --------------------------------------------------------- -->
-
+## 需要处理的
 * pdf -- 封面作者调整
 * pdf -- 每个 pdf 加上作者？ 嗯 是这样
 * 下载整本 以及下载量 (使用第三方免费的) https://tongji.baidu.com/web/welcome/products
 * 搜索框不好用了？
+* 是否去掉作者 NO
 
-* 去掉dataset等信息
-* 去掉MIT
-* 去掉广告改成商务
-* 是否去掉作者
-* 改为https，并测试移动端
-* 开发说明中的限制去掉
+* buildpdf -- 自动编译所有 pdf 并迁移
+* script -- 初始化环境/部署 python
 
 
-
-* tex 转 html 工具 deepleaning 书用的是什么工具？
+* tex 转 html 工具 deepleaning 书用的是什么工具？ OK
   - https://github.com/exacity/deeplearningbook-chinese
   - https://www.deeplearningbook.org/
-  - https://github.com/coolwanglu/pdf2htmlEX
+  - OK https://github.com/coolwanglu/pdf2htmlEX
+<!-- --------------------------------------------------------- -->
 
 
-# 部署
-* nginx 单独文件夹 （部署脚本也要改）
-* ssl 证书 单独文件夹 （部署脚本也要改）
+## 部署
+
 * readme 中添加项目文件/文件夹/note说明
 
-* 自动编译所有 pdf 并迁移
+
+* 改为https，并测试移动端 OK
+* nginx 单独文件夹 （部署脚本deploy.py也要改）OK
+* ssl 证书 单独文件夹 （部署脚本deploy.py也要改）OK
+
 * nginx 同端口 多 server (反向代理) OK?
 * nginx https 协议 输入http:也会自动跳转至https页面 OK?
 * nginx 重启服务 OK?
 
-
-* 初始化环境/部署 python
-* 自动部署 fabic OK
+* scripts -- 自动部署 fabic OK
+* cl 在 git 提交之后，自动发布？
+* git 之后，使用webhook 来进行自动发布
 
 
 ## 疑难杂症
