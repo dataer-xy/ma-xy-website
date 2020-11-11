@@ -16,7 +16,11 @@ bibtex 只能当前文件夹
 import subprocess
 import os 
 
-basePath = r"D:\GODEYES\INCUBATORS\ma-xy-website"
+basePath = os.path.dirname(
+    os.path.dirname(
+        __file__
+    )
+)
 texFilePath = os.path.join(basePath,"docs",".vuepress","public","texpdf") # tex pdf 文件路径
 
 def build_tex_str(documentStr,bibFileName=""):
@@ -420,7 +424,7 @@ for fileNamei in texFileList:
 
         mkTemplate = r"""
 {mkLevel} {chapName}
-[全页打开]({pdfFile}) (_self形式)
+<a href="{pdfFile}" target="_self">全页打开</a> (_self形式)
 <div class="pdf-class">
     <iframe  src={pdfFile} width="1100" height="1100">
     </iframe>
