@@ -1,7 +1,7 @@
 
 # MATALB LINK
-[全页打开](/texpdf/part-sxjm-chap-link.pdf) (_self形式)
+<a href="/texpdf/part-sxjm-chap-link.html" target="_blank">全页打开</a> (_blank形式)
 <div class="pdf-class">
-    <iframe  src=/texpdf/part-sxjm-chap-link.pdf width="1100" height="1100">
+    <iframe  src=/texpdf/part-sxjm-chap-link.html width="1100" height="1100">
     </iframe>
 </div>
