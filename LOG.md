@@ -56,12 +56,21 @@
   - https://github.com/exacity/deeplearningbook-chinese
   - https://www.deeplearningbook.org/
   - OK https://github.com/coolwanglu/pdf2htmlEX
+
+* pdf 改成 html
+
+
+
 <!-- --------------------------------------------------------- -->
 
 
 ## 部署
 
-* readme 中添加项目文件/文件夹/note说明
+* scripts -- 项目结构说明，中添加项目文件/文件夹/note说明
+
+* cl 在 git 提交之后，自动发布？
+* git 之后，使用webhook 来进行自动发布
+* readme 清理 OK
 
 
 * 改为https，并测试移动端 OK
@@ -69,12 +78,15 @@
 * ssl 证书 单独文件夹 （部署脚本deploy.py也要改）OK
 
 * nginx 同端口 多 server (反向代理) OK?
-* nginx https 协议 输入http:也会自动跳转至https页面 OK?
-* nginx 重启服务 OK?
+* nginx https 协议 输入http:也会自动跳转至https页面 OK
+* nginx 重启服务(注意kill nginx之后，不能 reload) OK?
 
 * scripts -- 自动部署 fabic OK
-* cl 在 git 提交之后，自动发布？
-* git 之后，使用webhook 来进行自动发布
+
+
+# errors 
+* nginx -error : OK 
+  - nginx: [warn] the "ssl" directive is deprecated, use the "listen ... ssl" directive instead in
 
 
 ## 疑难杂症
@@ -82,3 +94,5 @@
 * pdf -- 整体编译引用bibtex时，报错 I found no database files---while reading file main.aux
 
 ## bib 要复制到 doc 和 main.tex 下
+
+

@@ -1,6 +1,6 @@
 """
 构建整体pdf
-
+每个part要在main.tex中进行选择，然后再构建
 """
 import subprocess
 import os 
