@@ -35,68 +35,28 @@ export default {};
 </script>
 
 <style scoped>
-#hero,
-#news {
+#hero {
   padding: 40px 40px 30px;
   background-color: #fff;
 }
-#hero .inner,
-#news .inner {
+#hero .inner{
   max-width: 1260px;
   margin: 0 auto;
 }
-
 #hero .left,
-#news .left {
-  /* width: 39%; */
-}
-#hero .left,
-#news .left,
-#hero .right,
-#news .right {
+#hero .right{
   display: inline-block;
   vertical-align: top;
-}
-
-#hero .right,
-#news .right {
   /* width: 60%; */
-}
-#hero .left,
-#news .left,
-#hero .right,
-#news .right {
-  display: inline-block;
-  vertical-align: top;
+  margin-right: 30px;
+  margin-left: 30px;
 }
 
-#hero h1, #news h1 {
-    font-weight: 300;
-    margin: 0;
-    font-size: 3.2em;
-}
 
-h1, h2, h3, h4, strong {
-    font-weight: 600;
-    color: #273849;
-}
-user agent stylesheet
-h1 {
-    display: block;
-    font-size: 2em;
-    margin-block-start: 0.67em;
-    margin-block-end: 0.67em;
-    margin-inline-start: 0px;
-    margin-inline-end: 0px;
-    font-weight: bold;
-}
-
-#hero .button:not(:last-child), #news .button:not(:last-child) {
-
+#hero .button:not(:last-child){
     margin-right: 1%;
-
 }
-#hero .button, #news .button {
+#hero .button{
 
     margin: 1em 0;
         margin-right: 0px;
@@ -107,30 +67,37 @@ h1 {
     text-align: center;
 
 }
-a.button.white, input.button.white {
 
+/* #hero h1{
+    font-weight: 300;
+    margin: 0;
+    font-size: 3.2em;
+} */
+
+
+
+
+/* h1, h2, h3, h4, strong {
+    font-weight: 600;
+    color: #273849;
+} */
+
+/* h1 {
+    display: block;
+    font-size: 2em;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+} */
+
+a.button.white, input.button.white {
     background-color: #fff;
     color: #42b983;
-
 }
-a.button, input.button {
 
-    padding: 0.75em 2em;
-    border-radius: 2em;
-    display: inline-block;
-    color: #fff;
-    background-color: #4fc08d;
-    transition: all 0.15s ease;
-    box-sizing: border-box;
-    border: 1px solid #4fc08d;
 
-}
-a {
-
-    text-decoration: none;
-    color: #304455;
-
-}
 
 a.button.gray, input.button.gray {
 
@@ -145,6 +112,7 @@ a.button.has-icon, input.button.has-icon {
     text-indent: 1.4em;
 
 }
+
 a.button, input.button {
 
     padding: 0.75em 2em;
@@ -161,8 +129,8 @@ a.button, input.button {
         border-left-color: rgb(79, 192, 141);
 
 }
+/* 
 a {
-
     text-decoration: none;
     color: #304455;
 }
@@ -176,12 +144,7 @@ p {
     margin-block-end: 1em;
     margin-inline-start: 0px;
     margin-inline-end: 0px;
-}
+} */
 
-#hero .hero-logo, #news .hero-logo {
-    width: 215px;
-    height: 215px;
-    float: right;
-    margin-right: 60px;
-}
+
 </style>
