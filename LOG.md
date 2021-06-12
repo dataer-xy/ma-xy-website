@@ -58,6 +58,7 @@
   - OK https://github.com/coolwanglu/pdf2htmlEX
 
 * pdf 改成 html
+* nginx 缓存 html
 
 
 
