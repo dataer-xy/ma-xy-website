@@ -43,7 +43,6 @@ footer: MIT Licensed | Copyright © 2018-present Song Yanyi
 
 当然，如果作者觉得所写内容非常有价值，也可以提供预览版，之后付费查看整体。
 
-网站 logo 版权归 @宋焱燚 个人所有
 :::
 
 <Foot/>
