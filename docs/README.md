@@ -29,7 +29,9 @@ footer: MIT Licensed | Copyright © 2018-present Song Yanyi
 
 <!-- [dataset-xy](http://www.dataset-xy.com)  为机器学习模型提供数据支持，为数据分析人员提供多数据源融合IO。 -->
 
-[trainer-xy](https://github.com/dataer-xy/trainer-xy)  为机器学习模型提供灵活的仪表盘 dashboard，后面会兼容 tensorboard。
+[trainer-xy](https://www.github.com/dataer-xy/trainer-xy)  为机器学习模型提供灵活的仪表盘 dashboard，后面会兼容 tensorboard。
+
+[docpartner-xy](https://www.docpartner-xy.com) 如何才能像我一样快速写这么多latex文章呢？这里推荐给各位 [文档伴侣](https://www.docpartner-xy.com)。
 
 :::
 
@@ -39,9 +41,7 @@ footer: MIT Licensed | Copyright © 2018-present Song Yanyi
 ::: warning NOTE
 未来的书写大纲参考[这里](/devexp/)，书写要求参考[这里](/devexp/HELPME)。
 
-为了保证尽可能多的人来提交，该网站内容将尽可能的遵循 MIT 协议。
-
-当然，如果作者觉得所写内容非常有价值，也可以提供预览版，之后付费查看整体。
+不要经常来，下载下来看，经常来很费流量的，流量很贵的。
 
 :::
 
